@@ -10,6 +10,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Invalid year or month" }, { status: 400 });
   }
 
-  const plans = await getMonthPlans(year, month);
-  return NextResponse.json(plans);
+  try {
+    const plans = await getMonthPlans(year, month);
+    return NextResponse.json(plans);
+  } catch (e) {
+    return NextResponse.json({ error: String(e) }, { status: 500 });
+  }
 }
