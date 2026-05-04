@@ -2,13 +2,12 @@ import { Redis } from "@upstash/redis";
 import type { TrainingPlan } from "./types";
 
 function getRedis() {
-  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-    throw new Error("Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN environment variables");
+  const url = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) {
+    throw new Error("Missing Redis environment variables (KV_REST_API_URL / KV_REST_API_TOKEN)");
   }
-  return new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  });
+  return new Redis({ url, token });
 }
 
 export async function getPlan(date: string): Promise<TrainingPlan | null> {
