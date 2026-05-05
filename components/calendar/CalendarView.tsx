@@ -20,6 +20,14 @@ interface CalendarViewProps {
   onNextMonth: () => void;
 }
 
+// Use local date to avoid UTC timezone shift (e.g. GMT+7)
+function localDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 function buildCalendarDays(year: number, month: number) {
   const firstDay = new Date(year, month - 1, 1);
   const lastDay = new Date(year, month, 0);
@@ -28,17 +36,17 @@ function buildCalendarDays(year: number, month: number) {
 
   for (let i = startDow - 1; i >= 0; i--) {
     const d = new Date(year, month - 1, -i);
-    days.push({ date: d.toISOString().slice(0, 10), day: d.getDate(), isCurrentMonth: false });
+    days.push({ date: localDateStr(d), day: d.getDate(), isCurrentMonth: false });
   }
   for (let d = 1; d <= lastDay.getDate(); d++) {
     const dateObj = new Date(year, month - 1, d);
-    days.push({ date: dateObj.toISOString().slice(0, 10), day: d, isCurrentMonth: true });
+    days.push({ date: localDateStr(dateObj), day: d, isCurrentMonth: true });
   }
   const remaining = 7 - (days.length % 7);
   if (remaining < 7) {
     for (let i = 1; i <= remaining; i++) {
       const d = new Date(year, month, i);
-      days.push({ date: d.toISOString().slice(0, 10), day: d.getDate(), isCurrentMonth: false });
+      days.push({ date: localDateStr(d), day: d.getDate(), isCurrentMonth: false });
     }
   }
   return days;
@@ -47,7 +55,7 @@ function buildCalendarDays(year: number, month: number) {
 export default function CalendarView({
   year, month, plans, loading, isAdmin = false, selectedDate, onSelectDate, onPrevMonth, onNextMonth,
 }: CalendarViewProps) {
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = localDateStr(new Date());
   const calendarDays = useMemo(() => buildCalendarDays(year, month), [year, month]);
 
   return (
