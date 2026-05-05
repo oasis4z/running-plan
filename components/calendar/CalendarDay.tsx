@@ -22,18 +22,19 @@ export default function CalendarDay({
   isCurrentMonth,
   onClick,
 }: CalendarDayProps) {
-  const firstLine = plan?.description?.split("\n")[0] ?? "";
+  // Join all lines for display, replacing \n with " · "
+  const summaryText = plan?.description?.split("\n").join(" · ") ?? "";
 
   return (
     <button
       onClick={() => onClick(date)}
       className={[
-        "relative flex flex-col items-start p-1.5 sm:p-2 min-h-[90px] sm:min-h-[110px] rounded-xl border text-left transition-all w-full",
+        "relative flex flex-col items-start p-1.5 sm:p-2 min-h-[100px] sm:min-h-[120px] rounded-xl border-2 text-left transition-all w-full",
         plan
           ? RUN_TYPE_CELL_BG[plan.runType]
-          : "bg-white border-gray-100 hover:border-gray-200 hover:bg-gray-50",
-        isSelected && "ring-2 ring-blue-400 ring-offset-1",
-        !isCurrentMonth && "opacity-30",
+          : "bg-white border-gray-200 hover:bg-gray-50",
+        isSelected && "ring-2 ring-blue-500 ring-offset-1",
+        !isCurrentMonth && "opacity-25",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -41,8 +42,10 @@ export default function CalendarDay({
       {/* Day number */}
       <span
         className={[
-          "text-sm font-semibold w-6 h-6 flex items-center justify-center rounded-full mb-1 flex-shrink-0",
-          isToday ? "bg-blue-600 text-white" : plan ? RUN_TYPE_CELL_TEXT[plan.runType] : "text-gray-500",
+          "text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full mb-1 flex-shrink-0",
+          isToday
+            ? "bg-blue-600 text-white"
+            : plan ? RUN_TYPE_CELL_TEXT[plan.runType] : "text-gray-400",
         ].join(" ")}
       >
         {day}
@@ -50,14 +53,14 @@ export default function CalendarDay({
 
       {plan && (
         <div className="flex flex-col gap-1 w-full min-w-0">
-          {/* Run type label */}
-          <span className={`inline-flex self-start items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold text-white ${RUN_TYPE_LABEL_BG[plan.runType]}`}>
+          {/* Run type badge */}
+          <span className={`inline-flex self-start items-center px-1.5 py-0.5 rounded text-[10px] font-bold text-white leading-tight ${RUN_TYPE_LABEL_BG[plan.runType]}`}>
             {RUN_TYPE_ABBR[plan.runType]}
-            {plan.distanceKm ? ` · ${plan.distanceKm}km` : ""}
+            {plan.distanceKm ? ` ${plan.distanceKm}km` : ""}
           </span>
-          {/* First line of workout */}
-          <p className={`text-[11px] leading-tight font-medium line-clamp-2 ${RUN_TYPE_CELL_TEXT[plan.runType]}`}>
-            {firstLine}
+          {/* Full workout summary */}
+          <p className={`text-[11px] leading-snug font-medium line-clamp-3 ${RUN_TYPE_CELL_TEXT[plan.runType]}`}>
+            {summaryText}
           </p>
         </div>
       )}

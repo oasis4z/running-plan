@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import CalendarNav from "./CalendarNav";
 import CalendarDay from "./CalendarDay";
-import CalendarLegend from "./CalendarLegend";
+
 import type { TrainingPlan } from "@/lib/types";
 
 const DAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -88,7 +88,6 @@ export default function CalendarView({
         <p className="text-center text-xs text-gray-400 py-2">Loading...</p>
       )}
 
-      <CalendarLegend />
     </div>
   );
 }
