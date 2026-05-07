@@ -115,15 +115,21 @@ export default function CalendarDay({
         </span>
       )}
 
-      {/* Strava actual — pushed to bottom, clean 2-row card */}
+      {/* Strava actual — green "completed" card */}
       {actual && (
         <div
           className="mt-auto w-full rounded-lg overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #fc4c02 0%, #f43f5e 100%)" }}
-          title={`${actual.name} · ${actual.distanceKm}km · ${formatDurMin(actual.durationMin)}${actual.avgHr ? ` · ♥${actual.avgHr}` : ""}${actual.maxHr ? ` ↑${actual.maxHr}` : ""}`}
+          style={{ background: "linear-gradient(135deg, #10b981 0%, #059669 100%)" }}
+          title={`${actual.name} · ${actual.distanceKm}km · ${formatDurMin(actual.durationMin)}${actual.avgHr ? ` · Avg♥${actual.avgHr}` : ""}${actual.maxHr ? ` Max♥${actual.maxHr}` : ""}`}
         >
-          <div className="px-1.5 sm:px-2 py-1 sm:py-1.5">
-            {/* Row 1: ✓ dist · time */}
+          <div className="px-2 py-1 sm:py-1.5 flex flex-col gap-0.5">
+            {/* Plan label */}
+            {plan && (
+              <span className="text-[8px] sm:text-[9px] text-white/70 font-medium leading-none">
+                Plan: {plan.runType}
+              </span>
+            )}
+            {/* ✓ dist · time */}
             <div className="flex items-baseline gap-1 min-w-0">
               <span className="text-[10px] sm:text-[11px] font-bold text-white leading-none flex-shrink-0">
                 ✓ {actual.distanceKm}km
@@ -132,19 +138,21 @@ export default function CalendarDay({
                 · {formatDurMin(actual.durationMin)}
               </span>
             </div>
-            {/* Row 2: HR stats */}
-            {(actual.avgHr || actual.maxHr) && (
-              <div className="flex items-center gap-2 mt-1">
-                {actual.avgHr && (
-                  <span className="flex items-center gap-0.5 text-[9px] sm:text-[10px] text-white/90">
-                    <span className="opacity-70">♥</span>
-                    <span className="font-semibold">{actual.avgHr}</span>
+            {/* HR: Max ♥ then Avg ♥ */}
+            {(actual.maxHr || actual.avgHr) && (
+              <div className="flex items-center gap-2">
+                {actual.maxHr && (
+                  <span className="flex items-center gap-0.5 text-[9px] sm:text-[10px] text-white/90 leading-none">
+                    <span className="opacity-60 text-[8px] sm:text-[9px]">Max</span>
+                    <span className="font-semibold">{actual.maxHr}</span>
+                    <span>♥</span>
                   </span>
                 )}
-                {actual.maxHr && (
-                  <span className="flex items-center gap-0.5 text-[9px] sm:text-[10px] text-white/90">
-                    <span className="opacity-70">↑</span>
-                    <span className="font-semibold">{actual.maxHr}</span>
+                {actual.avgHr && (
+                  <span className="flex items-center gap-0.5 text-[9px] sm:text-[10px] text-white/90 leading-none">
+                    <span className="opacity-60 text-[8px] sm:text-[9px]">Avg</span>
+                    <span className="font-semibold">{actual.avgHr}</span>
+                    <span>♥</span>
                   </span>
                 )}
               </div>
