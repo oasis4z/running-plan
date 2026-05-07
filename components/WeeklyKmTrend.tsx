@@ -53,7 +53,7 @@ export default function WeeklyKmTrend({ athleteId }: { athleteId: string }) {
               <div className="w-full flex flex-col justify-end" style={{ height: 64 }}>
                 {week.actualKm > 0 ? (
                   <div
-                    className={`w-full rounded-t-md ${isCurrent ? "bg-blue-500 shadow-sm" : "bg-blue-200"}`}
+                    className={`w-full rounded-t-md ${isCurrent ? "bg-blue-600 shadow-md ring-1 ring-blue-400" : "bg-blue-200"}`}
                     style={{ height: barH }}
                   />
                 ) : (

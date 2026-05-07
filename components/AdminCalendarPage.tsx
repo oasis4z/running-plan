@@ -173,17 +173,16 @@ export default function AdminCalendarPage({ athlete }: AdminCalendarPageProps) {
             onEditClick={() => { setMode("race"); setSelectedDate(null); }}
           />
 
-          <WeatherWidget />
-
-          {/* Monthly compact */}
-          <MonthlyLoadChart actuals={actuals} year={year} month={month} />
-
-          {/* Weekly + Shoes */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2">
+          {/* Top section: left main | right shoes sidebar */}
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Left: Weather, Monthly, Weekly */}
+            <div className="flex-1 min-w-0 flex flex-col gap-4">
+              <WeatherWidget />
+              <MonthlyLoadChart actuals={actuals} year={year} month={month} />
               <WeeklyKmTrend athleteId={athlete.id} />
             </div>
-            <div>
+            {/* Right: Shoes sidebar */}
+            <div className="lg:w-72 flex-shrink-0">
               <StravaShoes athleteId={athlete.id} />
             </div>
           </div>

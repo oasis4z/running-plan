@@ -90,21 +90,17 @@ export default function PublicCalendarPage({ athlete }: PublicCalendarPageProps)
 
       <main className="max-w-5xl mx-auto px-4 py-6">
         <div className="flex flex-col gap-4">
-          {/* Race Countdown */}
-          <RaceCountdown athleteId={athlete.id} />
-
-          {/* Weather + PM2.5 (shared) */}
-          <WeatherWidget />
-
-          {/* Monthly compact */}
-          <MonthlyLoadChart actuals={actuals} year={year} month={month} />
-
-          {/* Weekly + Shoes */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2">
+          {/* Top section: left main | right shoes sidebar */}
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Left: Race, Weather, Monthly, Weekly */}
+            <div className="flex-1 min-w-0 flex flex-col gap-4">
+              <RaceCountdown athleteId={athlete.id} />
+              <WeatherWidget />
+              <MonthlyLoadChart actuals={actuals} year={year} month={month} />
               <WeeklyKmTrend athleteId={athlete.id} />
             </div>
-            <div>
+            {/* Right: Shoes sidebar */}
+            <div className="lg:w-72 flex-shrink-0">
               <StravaShoes athleteId={athlete.id} />
             </div>
           </div>
