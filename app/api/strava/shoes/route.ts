@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   const athlete = await getAthleteById(athleteId);
   if (!athlete) return NextResponse.json({ error: "Athlete not found" }, { status: 404 });
 
-  const cacheKey = `strava:shoes:v1:${athleteId}`;
+  const cacheKey = `strava:shoes:v2:${athleteId}`; // v2: don't cache empty results
   const cached = await rawGet(cacheKey);
   if (cached) return NextResponse.json({ shoes: JSON.parse(cached as string), cached: true });
 
@@ -46,6 +46,9 @@ export async function GET(req: NextRequest) {
     }))
     .sort((a, b) => b.distanceKm - a.distanceKm);
 
-  await rawSetEx(cacheKey, JSON.stringify(shoes), 3600);
+  // Only cache if we actually got shoes — don't cache empty (user may add shoes later)
+  if (shoes.length > 0) {
+    await rawSetEx(cacheKey, JSON.stringify(shoes), 3600);
+  }
   return NextResponse.json({ shoes, cached: false });
 }

@@ -3,17 +3,25 @@ import { useState, useEffect } from "react";
 import type { StravaActivity } from "@/lib/types";
 
 export interface WeekData {
-  weekStart: string;   // "YYYY-MM-DD" Monday
+  weekStart: string;   // "YYYY-MM-DD" Monday (local time)
   weekLabel: string;   // "Apr 28"
   actualKm: number;
 }
 
+/** Format Date as local "YYYY-MM-DD" — avoids UTC shift from toISOString() */
+function toLocalDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
 function getMondayOf(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
+  const d = new Date(dateStr + "T00:00:00"); // parse as local time
   const day = d.getDay();
   const diff = day === 0 ? -6 : 1 - day;
   d.setDate(d.getDate() + diff);
-  return d.toISOString().slice(0, 10);
+  return toLocalDateStr(d); // return local date string, NOT toISOString()
 }
 
 function formatWeekLabel(mondayStr: string): string {
@@ -23,14 +31,13 @@ function formatWeekLabel(mondayStr: string): string {
 
 export function useWeeklyTrend(athleteId: string) {
   const [weeks, setWeeks] = useState<WeekData[]>([]);
-  const [loading, setLoading] = useState(true); // start true so skeleton shows immediately
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!athleteId) return;
     setLoading(true);
 
     const today = new Date();
-    // fetch current month + 2 months back = enough for 8 weeks
     const monthsToFetch: { y: number; m: number }[] = [];
     for (let i = 0; i <= 2; i++) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
@@ -55,18 +62,20 @@ export function useWeeklyTrend(athleteId: string) {
         }
       }
 
+      // Group by week using local dates
       const byWeek: Record<string, number> = {};
       for (const [date, km] of Object.entries(byDate)) {
         const monday = getMondayOf(date);
         byWeek[monday] = Math.round(((byWeek[monday] ?? 0) + km) * 10) / 10;
       }
 
-      const todayMonday = getMondayOf(today.toISOString().slice(0, 10));
+      // Build last 8 weeks using local dates
+      const todayMonday = getMondayOf(toLocalDateStr(today));
       const result: WeekData[] = [];
       for (let i = 7; i >= 0; i--) {
         const d = new Date(todayMonday + "T00:00:00");
         d.setDate(d.getDate() - i * 7);
-        const mondayStr = d.toISOString().slice(0, 10);
+        const mondayStr = toLocalDateStr(d); // local date
         result.push({
           weekStart: mondayStr,
           weekLabel: formatWeekLabel(mondayStr),
