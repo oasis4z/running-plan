@@ -1,5 +1,11 @@
-import AdminCalendarPage from "@/components/AdminCalendarPage";
+import AdminLanding from "@/components/admin/AdminLanding";
+import { listAthletes } from "@/lib/athletes";
+import { ensureMigrated } from "@/lib/migration";
 
-export default function AdminPage() {
-  return <AdminCalendarPage />;
+export const dynamic = "force-dynamic";
+
+export default async function AdminPage() {
+  await ensureMigrated();
+  const athletes = await listAthletes();
+  return <AdminLanding initialAthletes={athletes} />;
 }

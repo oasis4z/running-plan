@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import CalendarNav from "./CalendarNav";
 import CalendarDay from "./CalendarDay";
 
-import type { TrainingPlan } from "@/lib/types";
+import type { TrainingPlan, StravaActivity } from "@/lib/types";
 
 const DAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -12,9 +12,12 @@ interface CalendarViewProps {
   year: number;
   month: number;
   plans: Record<string, TrainingPlan>;
+  actuals?: Record<string, StravaActivity>;
   loading: boolean;
   isAdmin?: boolean;
   selectedDate: string | null;
+  raceDate?: string | null;
+  raceName?: string;
   onSelectDate: (date: string) => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
@@ -53,7 +56,7 @@ function buildCalendarDays(year: number, month: number) {
 }
 
 export default function CalendarView({
-  year, month, plans, loading, isAdmin = false, selectedDate, onSelectDate, onPrevMonth, onNextMonth,
+  year, month, plans, actuals, loading, isAdmin = false, selectedDate, raceDate, raceName, onSelectDate, onPrevMonth, onNextMonth,
 }: CalendarViewProps) {
   const todayStr = localDateStr(new Date());
   const calendarDays = useMemo(() => buildCalendarDays(year, month), [year, month]);
@@ -84,9 +87,12 @@ export default function CalendarView({
             day={day}
             date={date}
             plan={plans[date]}
+            actual={actuals?.[date]}
             isToday={date === todayStr}
             isSelected={date === selectedDate}
             isCurrentMonth={isCurrentMonth}
+            isRaceDay={raceDate === date}
+            raceName={raceDate === date ? raceName : undefined}
             onClick={onSelectDate}
           />
         ))}

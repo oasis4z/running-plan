@@ -1,16 +1,31 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import CalendarView from "./calendar/CalendarView";
 import DayDetailPanel from "./day-detail/DayDetailPanel";
 import AdminEditForm from "./admin/AdminEditForm";
+import RaceCountdown from "./RaceCountdown";
+import RaceEditor from "./admin/RaceEditor";
+import CopyWeekDialog from "./admin/CopyWeekDialog";
+import WeatherWidget from "./WeatherWidget";
+import WeeklySummary from "./WeeklySummary";
+import MonthlyLoadChart from "./MonthlyLoadChart";
+import StravaConnect from "./StravaConnect";
+import AthleteSwitcher from "./AthleteSwitcher";
 import { useCalendarMonth } from "@/hooks/useCalendarMonth";
-import type { TrainingPlan } from "@/lib/types";
+import { useRace } from "@/hooks/useRace";
+import { useActualRuns } from "@/hooks/useActualRuns";
+import type { TrainingPlan, Athlete } from "@/lib/types";
 
-type Mode = "view" | "edit";
+type Mode = "view" | "edit" | "race" | "copy";
 
-export default function AdminCalendarPage() {
+interface AdminCalendarPageProps {
+  athlete: Athlete;
+}
+
+export default function AdminCalendarPage({ athlete }: AdminCalendarPageProps) {
   const router = useRouter();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -19,8 +34,11 @@ export default function AdminCalendarPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>("view");
   const [deleting, setDeleting] = useState(false);
+  const [raceKey, setRaceKey] = useState(0);
 
-  const { plans, loading, refetch } = useCalendarMonth(year, month);
+  const { plans, loading, refetch } = useCalendarMonth(athlete.id, year, month);
+  const race = useRace(athlete.id, raceKey);
+  const { runs: actuals } = useActualRuns(athlete.id, year, month);
 
   const selectedPlan: TrainingPlan | undefined = selectedDate ? plans[selectedDate] : undefined;
 
@@ -57,7 +75,7 @@ export default function AdminCalendarPage() {
     if (!confirmed) return;
 
     setDeleting(true);
-    await fetch(`/api/plans/${selectedDate}`, { method: "DELETE" });
+    await fetch(`/api/plans/${selectedDate}?athlete=${encodeURIComponent(athlete.id)}`, { method: "DELETE" });
     await refetch();
     setDeleting(false);
     setSelectedDate(null);
@@ -70,16 +88,53 @@ export default function AdminCalendarPage() {
     router.refresh();
   };
 
+  const handleQuickRest = async () => {
+    if (!selectedDate) return;
+    await fetch(`/api/plans/${selectedDate}?athlete=${encodeURIComponent(athlete.id)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ runType: "Rest", description: "Rest day" }),
+    });
+    await refetch();
+    setMode("view");
+  };
+
+  const handleRaceSaved = () => {
+    setRaceKey((k) => k + 1);
+    setMode("view");
+    setSelectedDate(null);
+  };
+
+  const handleCopiedWeek = async () => {
+    await refetch();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
-          <span className="text-2xl">🏃</span>
-          <div className="flex-1">
-            <h1 className="text-lg font-bold text-gray-900 leading-tight">Running Training Plan</h1>
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3 flex-wrap">
+          <Link href="/admin" className="text-2xl hover:opacity-80" title="Back to admin home">🏃</Link>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-bold text-gray-900 leading-tight truncate">
+              {athlete.name}
+              <span className="text-xs text-gray-400 font-normal ml-2">/ {athlete.slug}</span>
+            </h1>
             <p className="text-xs text-gray-400">Admin Dashboard</p>
           </div>
+          <AthleteSwitcher currentSlug={athlete.slug} adminMode />
+          <StravaConnect athleteId={athlete.id} />
+          <button
+            onClick={() => { setMode("copy"); setSelectedDate(null); }}
+            className="text-sm text-blue-600 hover:text-blue-800 border border-blue-200 hover:border-blue-300 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            📋 Copy Week
+          </button>
+          <a
+            href={`/api/calendar.ics?athlete=${encodeURIComponent(athlete.id)}`}
+            className="text-sm text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            📅 .ics
+          </a>
           <button
             onClick={handleLogout}
             className="text-sm text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-3 py-1.5 rounded-lg transition-colors"
@@ -90,45 +145,77 @@ export default function AdminCalendarPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Calendar */}
-          <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
-            <CalendarView
-              year={year}
-              month={month}
-              plans={plans}
-              loading={loading}
-              isAdmin
-              selectedDate={selectedDate}
-              onSelectDate={handleSelectDate}
-              onPrevMonth={prevMonth}
-              onNextMonth={nextMonth}
-            />
-          </div>
+        <div className="flex flex-col gap-4">
+          <RaceCountdown
+            key={raceKey}
+            athleteId={athlete.id}
+            isAdmin
+            onEditClick={() => { setMode("race"); setSelectedDate(null); }}
+          />
 
-          {/* Detail / Edit Panel */}
-          {selectedDate && (
-            <div className="lg:w-80 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:min-h-[400px]">
-              {mode === "edit" ? (
-                <AdminEditForm
-                  date={selectedDate}
-                  existing={selectedPlan}
-                  onSave={handleSave}
-                  onCancel={() => setMode("view")}
-                />
-              ) : (
-                <DayDetailPanel
-                  date={selectedDate}
-                  plan={selectedPlan}
+          <WeatherWidget />
+
+          <MonthlyLoadChart actuals={actuals} year={year} month={month} />
+
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+              <div className="flex flex-col gap-4">
+                <WeeklySummary plans={plans} anchorDate={selectedDate} />
+                <CalendarView
+                  year={year}
+                  month={month}
+                  plans={plans}
+                  actuals={actuals}
+                  loading={loading}
                   isAdmin
-                  loading={loading || deleting}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onClose={() => setSelectedDate(null)}
+                  selectedDate={selectedDate}
+                  raceDate={race?.date}
+                  raceName={race?.name}
+                  onSelectDate={handleSelectDate}
+                  onPrevMonth={prevMonth}
+                  onNextMonth={nextMonth}
                 />
-              )}
+              </div>
             </div>
-          )}
+
+            {(selectedDate || mode === "race" || mode === "copy") && (
+              <div className="lg:w-80 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:min-h-[400px]">
+                {mode === "copy" ? (
+                  <CopyWeekDialog
+                    athleteId={athlete.id}
+                    onClose={() => setMode("view")}
+                    onCopied={handleCopiedWeek}
+                  />
+                ) : mode === "race" ? (
+                  <RaceEditor
+                    athleteId={athlete.id}
+                    onClose={() => setMode("view")}
+                    onSaved={handleRaceSaved}
+                  />
+                ) : mode === "edit" ? (
+                  <AdminEditForm
+                    athleteId={athlete.id}
+                    date={selectedDate!}
+                    existing={selectedPlan}
+                    onSave={handleSave}
+                    onCancel={() => setMode("view")}
+                  />
+                ) : (
+                  <DayDetailPanel
+                    date={selectedDate!}
+                    plan={selectedPlan}
+                    actual={actuals[selectedDate!]}
+                    isAdmin
+                    loading={loading || deleting}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onQuickRest={!selectedPlan ? handleQuickRest : undefined}
+                    onClose={() => setSelectedDate(null)}
+                  />
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </main>
     </div>

@@ -15,10 +15,18 @@ export async function middleware(req: NextRequest) {
 
   const isAdminPage = pathname.startsWith("/admin");
   const isMutationAPI =
-    pathname.startsWith("/api/plans") &&
-    (method === "PUT" || method === "DELETE");
+    (pathname.startsWith("/api/plans") ||
+      pathname.startsWith("/api/race") ||
+      pathname.startsWith("/api/athletes")) &&
+    method !== "GET";
+  // Strava: protect connect-flow start + disconnect (admin only).
+  // /api/strava/callback is PUBLIC because Strava browser redirects to it.
+  // /api/strava/activities + /api/strava/status are PUBLIC read.
+  const isStravaAdmin =
+    pathname === "/api/strava/auth" ||
+    pathname === "/api/strava/disconnect";
 
-  if (!isAdminPage && !isMutationAPI) {
+  if (!isAdminPage && !isMutationAPI && !isStravaAdmin) {
     return NextResponse.next();
   }
 
@@ -44,5 +52,12 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/plans/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/api/plans/:path*",
+    "/api/race",
+    "/api/athletes/:path*",
+    "/api/strava/auth",
+    "/api/strava/disconnect",
+  ],
 };

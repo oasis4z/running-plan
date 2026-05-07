@@ -5,6 +5,7 @@ import type { TrainingPlan, RunType } from "@/lib/types";
 import { RUN_TYPES } from "@/lib/constants";
 
 interface AdminEditFormProps {
+  athleteId: string;
   date: string;
   existing?: TrainingPlan | null;
   onSave: (plan: TrainingPlan) => void;
@@ -16,14 +17,36 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 }
 
-export default function AdminEditForm({ date, existing, onSave, onCancel }: AdminEditFormProps) {
+type WorkoutMode = "distance" | "time" | "none";
+
+function inferMode(plan?: TrainingPlan | null): WorkoutMode {
+  if (plan?.distanceKm) return "distance";
+  if (plan?.durationMin) return "time";
+  return "distance"; // default for new plans
+}
+
+export default function AdminEditForm({ athleteId, date, existing, onSave, onCancel }: AdminEditFormProps) {
   const [description, setDescription] = useState(existing?.description ?? "");
   const [runType, setRunType] = useState<RunType>(existing?.runType ?? "Easy");
+  const [workoutMode, setWorkoutMode] = useState<WorkoutMode>(inferMode(existing));
   const [distanceKm, setDistanceKm] = useState(existing?.distanceKm?.toString() ?? "");
+  const [durationMin, setDurationMin] = useState(existing?.durationMin?.toString() ?? "");
   const [targetPace, setTargetPace] = useState(existing?.targetPace ?? "");
   const [notes, setNotes] = useState(existing?.notes ?? "");
+  // Fartlek fields
+  const [fastMin, setFastMin] = useState(existing?.fartlek?.fastMin?.toString() ?? "2");
+  const [fastPace, setFastPace] = useState(existing?.fartlek?.fastPace ?? "");
+  const [slowMin, setSlowMin] = useState(existing?.fartlek?.slowMin?.toString() ?? "2");
+  const [slowPace, setSlowPace] = useState(existing?.fartlek?.slowPace ?? "");
+  const [fartlekSets, setFartlekSets] = useState(existing?.fartlek?.sets?.toString() ?? "7");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const isFartlek = runType === "Fartlek";
+  const fartlekTotalMin =
+    isFartlek && fastMin && slowMin && fartlekSets
+      ? (parseFloat(fastMin) + parseFloat(slowMin)) * parseInt(fartlekSets)
+      : 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -34,12 +57,26 @@ export default function AdminEditForm({ date, existing, onSave, onCancel }: Admi
     const body = {
       description: description.trim(),
       runType,
-      distanceKm: distanceKm ? parseFloat(distanceKm) : undefined,
+      distanceKm: !isFartlek && workoutMode === "distance" && distanceKm ? parseFloat(distanceKm) : undefined,
+      durationMin: isFartlek
+        ? fartlekTotalMin || undefined
+        : workoutMode === "time" && durationMin
+        ? parseInt(durationMin)
+        : undefined,
       targetPace: targetPace.trim() || undefined,
       notes: notes.trim() || undefined,
+      fartlek: isFartlek
+        ? {
+            fastMin: parseFloat(fastMin) || 0,
+            fastPace: fastPace.trim() || undefined,
+            slowMin: parseFloat(slowMin) || 0,
+            slowPace: slowPace.trim() || undefined,
+            sets: parseInt(fartlekSets) || 0,
+          }
+        : undefined,
     };
 
-    const res = await fetch(`/api/plans/${date}`, {
+    const res = await fetch(`/api/plans/${date}?athlete=${encodeURIComponent(athleteId)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -100,20 +137,130 @@ export default function AdminEditForm({ date, existing, onSave, onCancel }: Admi
           />
         </div>
 
-        {/* Distance */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Distance (km)</label>
-            <input
-              type="number"
-              step="0.1"
-              min="0"
-              value={distanceKm}
-              onChange={(e) => setDistanceKm(e.target.value)}
-              placeholder="e.g. 12"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+        {/* Fartlek structure */}
+        {isFartlek && (
+          <div className="border border-indigo-200 bg-indigo-50/50 rounded-lg p-3">
+            <label className="block text-xs font-semibold text-indigo-700 mb-2">
+              Fartlek Structure
+            </label>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-gray-600 w-12">Fast</span>
+                <input
+                  type="number" step="0.5" min="0"
+                  value={fastMin}
+                  onChange={(e) => setFastMin(e.target.value)}
+                  className="w-16 border border-gray-300 rounded px-2 py-1 text-sm"
+                  placeholder="2"
+                />
+                <span className="text-xs text-gray-500">min @</span>
+                <input
+                  type="text"
+                  value={fastPace}
+                  onChange={(e) => setFastPace(e.target.value)}
+                  placeholder="4:00/km"
+                  className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-gray-600 w-12">Slow</span>
+                <input
+                  type="number" step="0.5" min="0"
+                  value={slowMin}
+                  onChange={(e) => setSlowMin(e.target.value)}
+                  className="w-16 border border-gray-300 rounded px-2 py-1 text-sm"
+                  placeholder="2"
+                />
+                <span className="text-xs text-gray-500">min @</span>
+                <input
+                  type="text"
+                  value={slowPace}
+                  onChange={(e) => setSlowPace(e.target.value)}
+                  placeholder="6:00/km"
+                  className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-gray-600 w-12">Sets</span>
+                <input
+                  type="number" step="1" min="1"
+                  value={fartlekSets}
+                  onChange={(e) => setFartlekSets(e.target.value)}
+                  className="w-16 border border-gray-300 rounded px-2 py-1 text-sm"
+                  placeholder="7"
+                />
+                {fartlekTotalMin > 0 && (
+                  <span className="text-xs text-indigo-700 font-medium">
+                    Total: {fartlekTotalMin} min
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
+        )}
+
+        {/* Workout mode toggle + value (non-Rest, non-Fartlek) */}
+        {runType !== "Rest" && !isFartlek && (
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">Volume</label>
+            {/* Toggle */}
+            <div className="flex rounded-lg border border-gray-300 overflow-hidden mb-2 text-sm">
+              <button
+                type="button"
+                onClick={() => setWorkoutMode("distance")}
+                className={`flex-1 py-1.5 font-medium transition-colors ${
+                  workoutMode === "distance"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-500 hover:bg-gray-50"
+                }`}
+              >
+                📏 Distance
+              </button>
+              <button
+                type="button"
+                onClick={() => setWorkoutMode("time")}
+                className={`flex-1 py-1.5 font-medium transition-colors border-l border-gray-300 ${
+                  workoutMode === "time"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-500 hover:bg-gray-50"
+                }`}
+              >
+                ⏱ Time
+              </button>
+            </div>
+
+            {workoutMode === "distance" ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={distanceKm}
+                  onChange={(e) => setDistanceKm(e.target.value)}
+                  placeholder="e.g. 12"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-500 font-medium">km</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={durationMin}
+                  onChange={(e) => setDurationMin(e.target.value)}
+                  placeholder="e.g. 45"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-500 font-medium">min</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Target Pace (distance mode only, non-fartlek) */}
+        {runType !== "Rest" && !isFartlek && workoutMode === "distance" && (
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Target Pace</label>
             <input
@@ -124,7 +271,7 @@ export default function AdminEditForm({ date, existing, onSave, onCancel }: Admi
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-        </div>
+        )}
 
         {/* Notes */}
         <div>
