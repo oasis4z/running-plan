@@ -26,6 +26,15 @@ interface CalendarDayProps {
   onClick: (date: string, rect: DOMRect) => void;
 }
 
+function getActivityIcon(type: string): string {
+  const t = (type ?? "").toLowerCase();
+  if (t.includes("ride") || t === "cycling") return "🚴";
+  if (t.includes("swim")) return "🏊";
+  if (t.includes("walk") || t.includes("hike")) return "🚶";
+  if (t.includes("yoga") || t === "workout") return "🏋️";
+  return "🏃";
+}
+
 function formatDurMin(min: number): string {
   if (min < 60) return `${min}m`;
   const h = Math.floor(min / 60);
@@ -132,10 +141,10 @@ export default function CalendarDay({
           title={`${actual.name} · ${actual.distanceKm}km · ${formatDurMin(actual.durationMin)}${actual.avgHr ? ` · Avg♥${actual.avgHr}` : ""}${actual.maxHr ? ` Max♥${actual.maxHr}` : ""}`}
         >
           <div className="px-1.5 sm:px-2 py-1 sm:py-1.5 flex flex-col gap-0.5">
-            {/* ✓ dist · time */}
+            {/* icon dist · time */}
             <div className="flex items-baseline gap-1 min-w-0">
               <span className="text-[10px] sm:text-[11px] font-bold text-emerald-700 leading-none flex-shrink-0">
-                ✓ {actual.distanceKm}km
+                {getActivityIcon(actual.type)} {actual.distanceKm}km
               </span>
               <span className="text-[9px] sm:text-[10px] text-slate-400 leading-none truncate min-w-0">
                 · {formatDurMin(actual.durationMin)}

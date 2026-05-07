@@ -71,15 +71,21 @@ export default function MonthlyLoadChart({ actuals, year, month }: MonthlyLoadCh
     (d, i, arr) => arr.indexOf(d) === i && d <= data.daysInMonth
   );
 
+  const monthLabel = new Date(year, month - 1, 1).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm">
       <div className="flex items-baseline justify-between mb-2 flex-wrap gap-2">
         <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
-          📈 Monthly Distance
+          📈 Monthly Distance — <span className="normal-case font-bold text-gray-800">{monthLabel}</span>
         </h3>
-        <div className="text-xs text-gray-500">
-          <span className="text-gray-400">วิ่งจริง:</span>{" "}
+        <div className="text-xs text-gray-500 flex items-center gap-1.5">
           <span className="font-bold text-orange-600 text-sm">{formatKm(data.totalKm)} km</span>
+          <span className="text-gray-300">·</span>
+          <span className="text-gray-400 text-[10px]">run + ride รวม</span>
         </div>
       </div>
 

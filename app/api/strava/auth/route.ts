@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       `?client_id=${encodeURIComponent(clientId)}` +
       `&redirect_uri=${encodeURIComponent(redirectUri)}` +
       `&response_type=code` +
-      `&scope=read,activity:read_all` +
+      `&scope=read,activity:read_all,profile:read_all` +
       `&approval_prompt=auto` +
       `&state=${encodeURIComponent(state)}`;
 
