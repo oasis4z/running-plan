@@ -26,7 +26,8 @@ export async function GET(req: NextRequest) {
   if (!athlete) return NextResponse.json({ error: "Athlete not found" }, { status: 404 });
 
   // Cache laps for 24h — laps never change after recording
-  const cacheKey = `strava:laps:${athleteId}:${activityId}`;
+  // v2: includes avgHr fix (removed incorrect has_heartrate check)
+  const cacheKey = `strava:laps:v2:${athleteId}:${activityId}`;
   const cached = await rawGet(cacheKey);
   if (cached) {
     return NextResponse.json({ laps: JSON.parse(cached as string), cached: true });
