@@ -65,7 +65,7 @@ export default function CalendarDay({
       title={isRaceDay && raceName ? `🏁 Race day: ${raceName}` : undefined}
       style={cellStyle}
       className={[
-        "relative flex flex-col items-start p-1 sm:p-2 min-h-[76px] sm:min-h-[110px] rounded-xl border-2 text-left transition-all w-full overflow-hidden",
+        "relative flex flex-col items-start p-1 sm:p-2 min-h-[70px] sm:min-h-[90px] rounded-xl border-2 text-left transition-all w-full overflow-hidden",
         !plan && !isRaceDay && "bg-white hover:bg-gray-50",
         isSelected && "ring-2 ring-blue-500 ring-offset-1",
         isRaceDay && "shadow-md",
@@ -100,44 +100,42 @@ export default function CalendarDay({
       )}
 
       {plan && colors && (
-        <div className="flex flex-col gap-1 w-full min-w-0">
-          {/* Badge */}
-          <span
-            style={{ backgroundColor: colors.badge }}
-            className="inline-flex self-start items-center px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold text-white leading-tight max-w-full truncate"
-          >
-            {RUN_TYPE_ABBR[plan.runType]}
-            {plan.fartlek
-              ? ` ${plan.fartlek.fastMin}/${plan.fartlek.slowMin}×${plan.fartlek.sets}`
-              : plan.distanceKm
-              ? ` ${plan.distanceKm}km`
-              : plan.durationMin
-              ? ` ${plan.durationMin}min`
-              : ""}
-          </span>
-          {/* Workout text */}
-          <p
-            style={{ color: isRaceDay ? "#581c87" : colors.text }}
-            className="text-[9px] sm:text-[11px] leading-snug font-medium line-clamp-1 sm:line-clamp-2 break-words"
-          >
-            {summaryText}
-          </p>
-        </div>
+        /* Run type badge only — no description text in calendar */
+        <span
+          style={{ backgroundColor: colors.badge }}
+          className="inline-flex self-start items-center px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold text-white leading-tight max-w-full truncate"
+        >
+          {RUN_TYPE_ABBR[plan.runType]}
+          {plan.fartlek
+            ? ` ${plan.fartlek.fastMin}/${plan.fartlek.slowMin}×${plan.fartlek.sets}`
+            : plan.distanceKm
+            ? ` ${plan.distanceKm}km`
+            : plan.durationMin
+            ? ` ${plan.durationMin}min`
+            : ""}
+        </span>
       )}
 
-      {/* Actual run badge from Strava — single line, w-full so it never overflows */}
+      {/* Strava actual — 2-row compact: dist·time on top, HR on bottom */}
       {actual && (
         <div
-          className="mt-auto w-full flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-white text-[9px] sm:text-[10px] font-semibold leading-tight shadow-sm overflow-hidden"
+          className="mt-auto w-full flex flex-col gap-px px-1.5 py-1 rounded-md text-white text-[9px] sm:text-[10px] font-semibold leading-tight shadow-sm overflow-hidden"
           style={{ background: "linear-gradient(135deg, #fc4c02 0%, #f43f5e 100%)" }}
-          title={`${actual.name} · ${actual.distanceKm} km · ${formatDurMin(actual.durationMin)}${actual.avgHr ? ` · ❤️ ${actual.avgHr}` : ""}`}
+          title={`${actual.name} · ${actual.distanceKm}km · ${formatDurMin(actual.durationMin)}${actual.avgHr ? ` · ♥${actual.avgHr}` : ""}${actual.maxHr ? ` ↑${actual.maxHr}` : ""}`}
         >
-          <span className="flex-shrink-0">✓</span>
-          <span className="font-bold flex-shrink-0 ml-0.5">{actual.distanceKm}km</span>
-          <span className="opacity-90 truncate min-w-0">
-            {` · ${formatDurMin(actual.durationMin)}`}
-            {actual.avgHr ? ` · ${actual.avgHr}♥` : ""}
-          </span>
+          {/* Row 1: ✓ distance · time */}
+          <div className="flex items-center gap-0.5 min-w-0">
+            <span className="flex-shrink-0">✓</span>
+            <span className="font-bold flex-shrink-0 ml-0.5">{actual.distanceKm}km</span>
+            <span className="opacity-90 truncate min-w-0"> · {formatDurMin(actual.durationMin)}</span>
+          </div>
+          {/* Row 2: avg HR · max HR (only if available) */}
+          {(actual.avgHr || actual.maxHr) && (
+            <div className="flex items-center gap-1.5 opacity-90">
+              {actual.avgHr && <span>♥{actual.avgHr}</span>}
+              {actual.maxHr && <span>↑{actual.maxHr}</span>}
+            </div>
+          )}
         </div>
       )}
     </button>
