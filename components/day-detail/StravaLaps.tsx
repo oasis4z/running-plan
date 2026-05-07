@@ -29,8 +29,9 @@ export default function StravaLaps({ activityId, athleteId }: Props) {
     fetch(`/api/strava/laps?athlete=${encodeURIComponent(athleteId)}&activityId=${activityId}`)
       .then((r) => r.json())
       .then((d) => {
-        if (d.laps && d.laps.length > 1) setLaps(d.laps);
-        // If only 1 lap, not worth showing the table
+        const lapData: StravaLap[] = d.laps ?? [];
+        // Show table only if ≥2 laps; otherwise hide (stop skeleton)
+        setLaps(lapData.length > 1 ? lapData : []);
       })
       .catch(() => setError(true));
   }, [activityId, athleteId]);
