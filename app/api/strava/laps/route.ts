@@ -11,8 +11,7 @@ interface RawLap {
   distance: number;         // meters
   moving_time: number;      // seconds
   average_speed: number;    // m/s
-  average_heartrate?: number;
-  has_heartrate?: boolean;
+  average_heartrate?: number;  // present if activity has HR data
 }
 
 export async function GET(req: NextRequest) {
@@ -53,9 +52,7 @@ export async function GET(req: NextRequest) {
       distanceKm: Math.round(distanceKm * 100) / 100,
       movingTimeSec: lap.moving_time,
       paceSecPerKm: Math.round(paceSecPerKm),
-      avgHr: lap.has_heartrate && lap.average_heartrate
-        ? Math.round(lap.average_heartrate)
-        : undefined,
+      avgHr: lap.average_heartrate ? Math.round(lap.average_heartrate) : undefined,
     };
   });
 

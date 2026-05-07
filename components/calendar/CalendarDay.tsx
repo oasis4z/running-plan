@@ -65,7 +65,7 @@ export default function CalendarDay({
       title={isRaceDay && raceName ? `🏁 Race day: ${raceName}` : undefined}
       style={cellStyle}
       className={[
-        "relative flex flex-col items-start p-1 sm:p-2 min-h-[70px] sm:min-h-[90px] rounded-xl border-2 text-left transition-all w-full overflow-hidden",
+        "relative flex flex-col items-start p-1 sm:p-2 min-h-[72px] sm:min-h-[96px] rounded-xl border-2 text-left transition-all w-full overflow-hidden",
         !plan && !isRaceDay && "bg-white hover:bg-gray-50",
         isSelected && "ring-2 ring-blue-500 ring-offset-1",
         isRaceDay && "shadow-md",
@@ -100,10 +100,9 @@ export default function CalendarDay({
       )}
 
       {plan && colors && (
-        /* Run type badge only — no description text in calendar */
         <span
           style={{ backgroundColor: colors.badge }}
-          className="inline-flex self-start items-center px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold text-white leading-tight max-w-full truncate"
+          className="self-start px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold text-white leading-none max-w-full truncate"
         >
           {RUN_TYPE_ABBR[plan.runType]}
           {plan.fartlek
@@ -116,26 +115,41 @@ export default function CalendarDay({
         </span>
       )}
 
-      {/* Strava actual — 2-row compact: dist·time on top, HR on bottom */}
+      {/* Strava actual — pushed to bottom, clean 2-row card */}
       {actual && (
         <div
-          className="mt-auto w-full flex flex-col gap-px px-1.5 py-1 rounded-md text-white text-[9px] sm:text-[10px] font-semibold leading-tight shadow-sm overflow-hidden"
+          className="mt-auto w-full rounded-lg overflow-hidden"
           style={{ background: "linear-gradient(135deg, #fc4c02 0%, #f43f5e 100%)" }}
           title={`${actual.name} · ${actual.distanceKm}km · ${formatDurMin(actual.durationMin)}${actual.avgHr ? ` · ♥${actual.avgHr}` : ""}${actual.maxHr ? ` ↑${actual.maxHr}` : ""}`}
         >
-          {/* Row 1: ✓ distance · time */}
-          <div className="flex items-center gap-0.5 min-w-0">
-            <span className="flex-shrink-0">✓</span>
-            <span className="font-bold flex-shrink-0 ml-0.5">{actual.distanceKm}km</span>
-            <span className="opacity-90 truncate min-w-0"> · {formatDurMin(actual.durationMin)}</span>
-          </div>
-          {/* Row 2: avg HR · max HR (only if available) */}
-          {(actual.avgHr || actual.maxHr) && (
-            <div className="flex items-center gap-1.5 opacity-90">
-              {actual.avgHr && <span>♥{actual.avgHr}</span>}
-              {actual.maxHr && <span>↑{actual.maxHr}</span>}
+          <div className="px-1.5 sm:px-2 py-1 sm:py-1.5">
+            {/* Row 1: ✓ dist · time */}
+            <div className="flex items-baseline gap-1 min-w-0">
+              <span className="text-[10px] sm:text-[11px] font-bold text-white leading-none flex-shrink-0">
+                ✓ {actual.distanceKm}km
+              </span>
+              <span className="text-[9px] sm:text-[10px] text-white/80 leading-none truncate min-w-0">
+                · {formatDurMin(actual.durationMin)}
+              </span>
             </div>
-          )}
+            {/* Row 2: HR stats */}
+            {(actual.avgHr || actual.maxHr) && (
+              <div className="flex items-center gap-2 mt-1">
+                {actual.avgHr && (
+                  <span className="flex items-center gap-0.5 text-[9px] sm:text-[10px] text-white/90">
+                    <span className="opacity-70">♥</span>
+                    <span className="font-semibold">{actual.avgHr}</span>
+                  </span>
+                )}
+                {actual.maxHr && (
+                  <span className="flex items-center gap-0.5 text-[9px] sm:text-[10px] text-white/90">
+                    <span className="opacity-70">↑</span>
+                    <span className="font-semibold">{actual.maxHr}</span>
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </button>
