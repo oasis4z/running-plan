@@ -12,6 +12,8 @@ import CopyWeekDialog from "./admin/CopyWeekDialog";
 import WeatherWidget from "./WeatherWidget";
 import WeeklySummary from "./WeeklySummary";
 import MonthlyLoadChart from "./MonthlyLoadChart";
+import WeeklyKmTrend from "./WeeklyKmTrend";
+import StravaShoes from "./StravaShoes";
 import StravaConnect from "./StravaConnect";
 import AthleteSwitcher from "./AthleteSwitcher";
 import DayDetailPopover from "./DayDetailPopover";
@@ -174,6 +176,15 @@ export default function AdminCalendarPage({ athlete }: AdminCalendarPageProps) {
           <WeatherWidget />
 
           <MonthlyLoadChart actuals={actuals} year={year} month={month} />
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2">
+              <WeeklyKmTrend athleteId={athlete.id} />
+            </div>
+            <div>
+              <StravaShoes athleteId={athlete.id} />
+            </div>
+          </div>
 
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
