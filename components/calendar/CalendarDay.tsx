@@ -104,7 +104,7 @@ export default function CalendarDay({
           style={{ backgroundColor: colors.badge }}
           className="self-start px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold text-white leading-none max-w-full truncate"
         >
-          {RUN_TYPE_ABBR[plan.runType]}
+          {"Plan: " + plan.runType}
           {plan.fartlek
             ? ` ${plan.fartlek.fastMin}/${plan.fartlek.slowMin}×${plan.fartlek.sets}`
             : plan.distanceKm
@@ -115,20 +115,14 @@ export default function CalendarDay({
         </span>
       )}
 
-      {/* Strava actual — green "completed" card */}
+      {/* Strava actual — indigo/violet "completed" card */}
       {actual && (
         <div
           className="mt-auto w-full rounded-lg overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #10b981 0%, #059669 100%)" }}
+          style={{ background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)" }}
           title={`${actual.name} · ${actual.distanceKm}km · ${formatDurMin(actual.durationMin)}${actual.avgHr ? ` · Avg♥${actual.avgHr}` : ""}${actual.maxHr ? ` Max♥${actual.maxHr}` : ""}`}
         >
           <div className="px-2 py-1 sm:py-1.5 flex flex-col gap-0.5">
-            {/* Plan label */}
-            {plan && (
-              <span className="text-[8px] sm:text-[9px] text-white/70 font-medium leading-none">
-                Plan: {plan.runType}
-              </span>
-            )}
             {/* ✓ dist · time */}
             <div className="flex items-baseline gap-1 min-w-0">
               <span className="text-[10px] sm:text-[11px] font-bold text-white leading-none flex-shrink-0">
