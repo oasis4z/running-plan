@@ -2,16 +2,15 @@
 
 import type { TrainingPlan, StravaActivity } from "@/lib/types";
 import type { RunType } from "@/lib/types";
-import { RUN_TYPE_ABBR } from "@/lib/constants";
 
-// Inline styles — Tailwind JIT cannot detect dynamic class names from object lookups
+// Softer pastel backgrounds + bold badge colors per run type
 const CELL_COLORS: Record<RunType, { bg: string; border: string; text: string; badge: string }> = {
-  Rest:       { bg: "#f3f4f6", border: "#d1d5db", text: "#4b5563", badge: "#6b7280" },
-  Easy:       { bg: "#a7f3d0", border: "#34d399", text: "#064e3b", badge: "#059669" },
-  "Long Run": { bg: "#bfdbfe", border: "#60a5fa", text: "#1e3a8a", badge: "#2563eb" },
-  Tempo:      { bg: "#fed7aa", border: "#fb923c", text: "#7c2d12", badge: "#ea580c" },
-  Interval:   { bg: "#fca5a5", border: "#f87171", text: "#7f1d1d", badge: "#dc2626" },
-  Fartlek:    { bg: "#c7d2fe", border: "#818cf8", text: "#312e81", badge: "#4f46e5" },
+  Rest:       { bg: "#f8fafc", border: "#e2e8f0", text: "#64748b", badge: "#94a3b8" },
+  Easy:       { bg: "#f0fdf4", border: "#86efac", text: "#166534", badge: "#16a34a" },
+  "Long Run": { bg: "#eff6ff", border: "#93c5fd", text: "#1e40af", badge: "#2563eb" },
+  Tempo:      { bg: "#fff7ed", border: "#fdba74", text: "#9a3412", badge: "#ea580c" },
+  Interval:   { bg: "#fff1f2", border: "#fda4af", text: "#9f1239", badge: "#e11d48" },
+  Fartlek:    { bg: "#f5f3ff", border: "#c4b5fd", text: "#5b21b6", badge: "#7c3aed" },
 };
 
 interface CalendarDayProps {
@@ -28,24 +27,21 @@ interface CalendarDayProps {
 }
 
 function formatDurMin(min: number): string {
-  if (min < 60) return `${min} min`;
+  if (min < 60) return `${min}m`;
   const h = Math.floor(min / 60);
   const m = Math.round(min % 60);
-  return m === 0 ? `${h} hr` : `${h}h ${m}m`;
+  return m === 0 ? `${h}h` : `${h}h${m}m`;
 }
 
 export default function CalendarDay({
   day, date, plan, actual, isToday, isSelected, isCurrentMonth, isRaceDay, raceName, onClick,
 }: CalendarDayProps) {
-  const summaryText = plan?.description?.split("\n").join(" · ") ?? "";
   const colors = plan ? CELL_COLORS[plan.runType] : null;
 
-  // Race day takes visual priority — purple gradient style
   const cellStyle: React.CSSProperties = isRaceDay
     ? {
-        background:
-          "linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%)",
-        borderColor: isSelected ? "#3b82f6" : "#a855f7",
+        background: "linear-gradient(135deg, #faf5ff 0%, #fdf2f8 100%)",
+        borderColor: isSelected ? "#3b82f6" : "#c084fc",
         opacity: isCurrentMonth ? 1 : 0.35,
       }
     : colors
@@ -55,7 +51,8 @@ export default function CalendarDay({
         opacity: isCurrentMonth ? 1 : 0.25,
       }
     : {
-        borderColor: isSelected ? "#3b82f6" : "#e5e7eb",
+        backgroundColor: "#ffffff",
+        borderColor: isSelected ? "#3b82f6" : "#f1f5f9",
         opacity: isCurrentMonth ? 1 : 0.25,
       };
 
@@ -65,44 +62,52 @@ export default function CalendarDay({
       title={isRaceDay && raceName ? `🏁 Race day: ${raceName}` : undefined}
       style={cellStyle}
       className={[
-        "relative flex flex-col items-start p-1 sm:p-2 min-h-[72px] sm:min-h-[96px] rounded-xl border-2 text-left transition-all w-full overflow-hidden",
-        !plan && !isRaceDay && "bg-white hover:bg-gray-50",
-        isSelected && "ring-2 ring-blue-500 ring-offset-1",
-        isRaceDay && "shadow-md",
+        "relative flex flex-col items-start p-1.5 sm:p-2 min-h-[80px] sm:min-h-[104px] rounded-xl border-2 text-left w-full overflow-hidden",
+        "transition-all duration-150 hover:brightness-95",
+        !plan && !isRaceDay && "hover:bg-slate-50",
+        isSelected && "ring-2 ring-blue-500 ring-offset-1 shadow-md",
+        isRaceDay && "shadow-sm",
       ].filter(Boolean).join(" ")}
     >
-      {/* Race day flag in corner */}
+      {/* Race day emoji */}
       {isRaceDay && (
-        <span className="absolute top-1 right-1 text-base leading-none">🏁</span>
+        <span className="absolute top-1.5 right-1.5 text-sm leading-none">🏁</span>
       )}
 
       {/* Day number */}
       <span
         style={colors && !isToday && !isRaceDay ? { color: colors.text } : undefined}
         className={[
-          "text-xs sm:text-sm font-bold w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full mb-0.5 flex-shrink-0",
-          isToday ? "bg-blue-600 text-white" : isRaceDay ? "text-purple-900" : !plan ? "text-gray-400" : "",
+          "text-xs sm:text-sm font-bold w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full flex-shrink-0 mb-1",
+          isToday
+            ? "bg-blue-600 text-white shadow-sm"
+            : isRaceDay
+            ? "text-purple-800"
+            : !plan
+            ? "text-slate-300"
+            : "",
         ].join(" ")}
       >
         {day}
       </span>
 
-      {/* Race day label */}
+      {/* Race label */}
       {isRaceDay && raceName && (
-        <span className="inline-flex self-start items-center px-1 py-0.5 rounded text-[8px] sm:text-[10px] font-bold text-white leading-tight bg-gradient-to-r from-purple-600 to-pink-600 mb-0.5 max-w-full truncate">
-          🏁 RACE
-        </span>
-      )}
-      {isRaceDay && raceName && (
-        <p className="text-[9px] sm:text-[11px] leading-snug font-bold text-purple-900 line-clamp-2 mb-0.5 break-words w-full">
-          {raceName}
-        </p>
+        <>
+          <span className="inline-flex self-start items-center px-1.5 py-0.5 rounded-full text-[8px] sm:text-[9px] font-bold text-white bg-gradient-to-r from-purple-600 to-pink-500 mb-1 leading-none">
+            🏁 RACE
+          </span>
+          <p className="text-[9px] sm:text-[11px] font-semibold text-purple-900 line-clamp-2 break-words w-full leading-snug">
+            {raceName}
+          </p>
+        </>
       )}
 
+      {/* Plan badge */}
       {plan && colors && (
         <span
           style={{ backgroundColor: colors.badge }}
-          className="self-start px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold text-white leading-none max-w-full truncate"
+          className="self-start px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] font-semibold text-white leading-none max-w-full truncate"
         >
           {"Plan: " + plan.runType}
           {plan.fartlek
@@ -115,38 +120,42 @@ export default function CalendarDay({
         </span>
       )}
 
-      {/* Strava actual — indigo/violet "completed" card */}
+      {/* Strava actual — white card, works on every bg color */}
       {actual && (
         <div
           className="mt-auto w-full rounded-lg overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)" }}
+          style={{
+            background: "rgba(255,255,255,0.90)",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+            border: "1px solid rgba(0,0,0,0.06)",
+          }}
           title={`${actual.name} · ${actual.distanceKm}km · ${formatDurMin(actual.durationMin)}${actual.avgHr ? ` · Avg♥${actual.avgHr}` : ""}${actual.maxHr ? ` Max♥${actual.maxHr}` : ""}`}
         >
-          <div className="px-2 py-1 sm:py-1.5 flex flex-col gap-0.5">
+          <div className="px-1.5 sm:px-2 py-1 sm:py-1.5 flex flex-col gap-0.5">
             {/* ✓ dist · time */}
             <div className="flex items-baseline gap-1 min-w-0">
-              <span className="text-[10px] sm:text-[11px] font-bold text-white leading-none flex-shrink-0">
+              <span className="text-[10px] sm:text-[11px] font-bold text-emerald-700 leading-none flex-shrink-0">
                 ✓ {actual.distanceKm}km
               </span>
-              <span className="text-[9px] sm:text-[10px] text-white/80 leading-none truncate min-w-0">
+              <span className="text-[9px] sm:text-[10px] text-slate-400 leading-none truncate min-w-0">
                 · {formatDurMin(actual.durationMin)}
               </span>
             </div>
-            {/* HR: Max ♥ then Avg ♥ */}
+            {/* Max ♥ · Avg ♥ */}
             {(actual.maxHr || actual.avgHr) && (
               <div className="flex items-center gap-2">
                 {actual.maxHr && (
-                  <span className="flex items-center gap-0.5 text-[9px] sm:text-[10px] text-white/90 leading-none">
-                    <span className="opacity-60 text-[8px] sm:text-[9px]">Max</span>
-                    <span className="font-semibold">{actual.maxHr}</span>
-                    <span>♥</span>
+                  <span className="flex items-center gap-0.5 leading-none">
+                    <span className="text-[8px] text-slate-400">Max</span>
+                    <span className="text-[9px] sm:text-[10px] font-semibold text-rose-500">{actual.maxHr}</span>
+                    <span className="text-[9px] text-rose-400">♥</span>
                   </span>
                 )}
                 {actual.avgHr && (
-                  <span className="flex items-center gap-0.5 text-[9px] sm:text-[10px] text-white/90 leading-none">
-                    <span className="opacity-60 text-[8px] sm:text-[9px]">Avg</span>
-                    <span className="font-semibold">{actual.avgHr}</span>
-                    <span>♥</span>
+                  <span className="flex items-center gap-0.5 leading-none">
+                    <span className="text-[8px] text-slate-400">Avg</span>
+                    <span className="text-[9px] sm:text-[10px] font-semibold text-rose-400">{actual.avgHr}</span>
+                    <span className="text-[9px] text-rose-300">♥</span>
                   </span>
                 )}
               </div>
