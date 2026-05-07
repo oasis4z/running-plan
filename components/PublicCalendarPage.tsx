@@ -36,7 +36,7 @@ export default function PublicCalendarPage({ athlete }: PublicCalendarPageProps)
 
   const { plans, loading } = useCalendarMonth(athlete.id, year, month);
   const race = useRace(athlete.id);
-  const { runs: actuals } = useActualRuns(athlete.id, year, month);
+  const { runs: actuals, runLists } = useActualRuns(athlete.id, year, month);
 
   const selectedPlan = selectedDate ? plans[selectedDate] : undefined;
 
@@ -123,7 +123,7 @@ export default function PublicCalendarPage({ athlete }: PublicCalendarPageProps)
                 <DayDetailPanel
                   date={selectedDate}
                   plan={selectedPlan}
-                  actual={actuals[selectedDate]}
+                  actuals={selectedDate ? runLists[selectedDate] : undefined}
                   athleteId={athlete.id}
                   loading={loading}
                   onClose={closeDetail}
@@ -138,7 +138,7 @@ export default function PublicCalendarPage({ athlete }: PublicCalendarPageProps)
               <DayDetailPanel
                 date={selectedDate}
                 plan={selectedPlan}
-                actual={actuals[selectedDate]}
+                actuals={selectedDate ? runLists[selectedDate] : undefined}
                 athleteId={athlete.id}
                 loading={loading}
                 onClose={closeDetail}

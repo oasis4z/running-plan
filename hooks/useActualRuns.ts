@@ -5,6 +5,7 @@ import type { StravaActivity } from "@/lib/types";
 
 export function useActualRuns(athleteId: string, year: number, month: number) {
   const [runs, setRuns] = useState<Record<string, StravaActivity>>({});
+  const [runLists, setRunLists] = useState<Record<string, StravaActivity[]>>({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -23,10 +24,19 @@ export function useActualRuns(athleteId: string, year: number, month: number) {
           .catch(() => [] as StravaActivity[])
       )
     )
-      .then((lists) => {
+      .then((allLists) => {
         const map: Record<string, StravaActivity> = {};
-        for (const list of lists) {
+        const listMap: Record<string, StravaActivity[]> = {};
+
+        for (const list of allLists) {
           for (const run of list) {
+            // Build per-day list (deduplicate by id across overlapping month fetches)
+            if (!listMap[run.date]) listMap[run.date] = [];
+            if (!listMap[run.date].find((r) => r.id === run.id)) {
+              listMap[run.date].push(run);
+            }
+
+            // Build merged map for calendar cell display
             const existing = map[run.date];
             if (!existing) {
               map[run.date] = run;
@@ -45,10 +55,17 @@ export function useActualRuns(athleteId: string, year: number, month: number) {
             }
           }
         }
+
+        // Sort each day's list: longest run first
+        for (const date of Object.keys(listMap)) {
+          listMap[date].sort((a, b) => b.distanceKm - a.distanceKm);
+        }
+
         setRuns(map);
+        setRunLists(listMap);
       })
       .finally(() => setLoading(false));
   }, [athleteId, year, month]);
 
-  return { runs, loading };
+  return { runs, runLists, loading };
 }

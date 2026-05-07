@@ -48,7 +48,7 @@ export default function AdminCalendarPage({ athlete }: AdminCalendarPageProps) {
 
   const { plans, loading, refetch } = useCalendarMonth(athlete.id, year, month);
   const race = useRace(athlete.id, raceKey);
-  const { runs: actuals } = useActualRuns(athlete.id, year, month);
+  const { runs: actuals, runLists } = useActualRuns(athlete.id, year, month);
 
   const selectedPlan: TrainingPlan | undefined = selectedDate ? plans[selectedDate] : undefined;
 
@@ -230,7 +230,7 @@ export default function AdminCalendarPage({ athlete }: AdminCalendarPageProps) {
                   <DayDetailPanel
                     date={selectedDate}
                     plan={selectedPlan}
-                    actual={actuals[selectedDate]}
+                    actuals={selectedDate ? runLists[selectedDate] : undefined}
                     athleteId={athlete.id}
                     isAdmin
                     loading={loading || deleting}
@@ -259,7 +259,7 @@ export default function AdminCalendarPage({ athlete }: AdminCalendarPageProps) {
                 <DayDetailPanel
                   date={selectedDate}
                   plan={selectedPlan}
-                  actual={actuals[selectedDate]}
+                  actuals={selectedDate ? runLists[selectedDate] : undefined}
                   athleteId={athlete.id}
                   isAdmin
                   loading={loading || deleting}

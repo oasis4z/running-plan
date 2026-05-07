@@ -14,7 +14,8 @@ const StravaRouteMap = dynamic(() => import("./StravaRouteMap"), {
 interface DayDetailPanelProps {
   date: string;
   plan: TrainingPlan | null | undefined;
-  actual?: StravaActivity;
+  /** All Strava activities for this day (replaces the old single `actual`). */
+  actuals?: StravaActivity[];
   athleteId?: string;
   isAdmin?: boolean;
   onEdit?: () => void;
@@ -29,10 +30,100 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 }
 
+function ActivityCard({
+  activity,
+  athleteId,
+  index,
+  total,
+}: {
+  activity: StravaActivity;
+  athleteId?: string;
+  index: number;
+  total: number;
+}) {
+  const label = total > 1 ? `✓ Run ${index + 1} of ${total}` : "✓ Actual Run";
+  return (
+    <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-3">
+      <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-2">{label}</p>
+      <div className="grid grid-cols-3 gap-2 text-sm">
+        <div>
+          <div className="text-[10px] text-orange-700/70 uppercase">Distance</div>
+          <div className="font-bold text-orange-900">{activity.distanceKm} km</div>
+        </div>
+        <div>
+          <div className="text-[10px] text-orange-700/70 uppercase">Time</div>
+          <div className="font-bold text-orange-900">{formatDurationHHMM(activity.durationMin)}</div>
+        </div>
+        <div>
+          <div className="text-[10px] text-orange-700/70 uppercase">Pace</div>
+          <div className="font-bold text-orange-900">{formatPace(activity.paceSecPerKm)}</div>
+        </div>
+      </div>
+
+      {(activity.avgHr || activity.maxHr || (activity.elevationGain != null && activity.elevationGain > 0) || activity.sufferScore != null || activity.calories) && (
+        <div className="mt-2 grid grid-cols-3 gap-2 text-sm border-t border-orange-200/50 pt-2">
+          {activity.avgHr && (
+            <div>
+              <div className="text-[10px] text-rose-700/80 uppercase">❤️ Avg HR</div>
+              <div className="font-bold text-rose-900">{activity.avgHr} <span className="text-[10px] font-normal">bpm</span></div>
+            </div>
+          )}
+          {activity.maxHr && (
+            <div>
+              <div className="text-[10px] text-rose-700/80 uppercase">💢 Max HR</div>
+              <div className="font-bold text-rose-900">{activity.maxHr} <span className="text-[10px] font-normal">bpm</span></div>
+            </div>
+          )}
+          {activity.elevationGain != null && activity.elevationGain > 0 && (
+            <div>
+              <div className="text-[10px] text-emerald-700/80 uppercase">⛰️ Elev</div>
+              <div className="font-bold text-emerald-900">{activity.elevationGain} <span className="text-[10px] font-normal">m</span></div>
+            </div>
+          )}
+          {activity.sufferScore != null && (
+            <div>
+              <div className="text-[10px] text-purple-700/80 uppercase">💪 Effort</div>
+              <div className="font-bold text-purple-900">{activity.sufferScore}</div>
+            </div>
+          )}
+          {activity.calories && (
+            <div>
+              <div className="text-[10px] text-orange-700/80 uppercase">🔥 Cal</div>
+              <div className="font-bold text-orange-900">{activity.calories} <span className="text-[10px] font-normal">kcal</span></div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activity.name && (
+        <p className="text-xs text-orange-800 mt-2 truncate" title={activity.name}>
+          {activity.name}
+        </p>
+      )}
+      <a
+        href={activity.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-orange-700 hover:text-orange-900"
+      >
+        🔗 ดูบน Strava →
+      </a>
+
+      {athleteId && <StravaLaps activityId={activity.id} athleteId={athleteId} />}
+
+      {activity.mapPolyline && (
+        <div className="mt-3">
+          <StravaRouteMap encodedPolyline={activity.mapPolyline} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DayDetailPanel({
   date,
   plan,
-  actual,
+  actuals,
   athleteId,
   isAdmin,
   onEdit,
@@ -41,86 +132,14 @@ export default function DayDetailPanel({
   onQuickRest,
   loading,
 }: DayDetailPanelProps) {
-  const actualBlock = actual ? (
-    <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-3">
-      <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-2">
-        ✓ Actual Run
-      </p>
-      <div className="grid grid-cols-3 gap-2 text-sm">
-        <div>
-          <div className="text-[10px] text-orange-700/70 uppercase">Distance</div>
-          <div className="font-bold text-orange-900">{actual.distanceKm} km</div>
-        </div>
-        <div>
-          <div className="text-[10px] text-orange-700/70 uppercase">Time</div>
-          <div className="font-bold text-orange-900">{formatDurationHHMM(actual.durationMin)}</div>
-        </div>
-        <div>
-          <div className="text-[10px] text-orange-700/70 uppercase">Pace</div>
-          <div className="font-bold text-orange-900">{formatPace(actual.paceSecPerKm)}</div>
-        </div>
+  const actualBlock =
+    actuals && actuals.length > 0 ? (
+      <div className="flex flex-col gap-3">
+        {actuals.map((a, i) => (
+          <ActivityCard key={a.id} activity={a} athleteId={athleteId} index={i} total={actuals.length} />
+        ))}
       </div>
-
-      {/* HR + Elevation + Calories row */}
-      {(actual.avgHr || actual.maxHr || actual.elevationGain != null || actual.sufferScore != null || actual.calories) && (
-        <div className="mt-2 grid grid-cols-3 gap-2 text-sm border-t border-orange-200/50 pt-2">
-          {actual.avgHr && (
-            <div>
-              <div className="text-[10px] text-rose-700/80 uppercase">❤️ Avg HR</div>
-              <div className="font-bold text-rose-900">{actual.avgHr} <span className="text-[10px] font-normal">bpm</span></div>
-            </div>
-          )}
-          {actual.maxHr && (
-            <div>
-              <div className="text-[10px] text-rose-700/80 uppercase">💢 Max HR</div>
-              <div className="font-bold text-rose-900">{actual.maxHr} <span className="text-[10px] font-normal">bpm</span></div>
-            </div>
-          )}
-          {actual.elevationGain != null && actual.elevationGain > 0 && (
-            <div>
-              <div className="text-[10px] text-emerald-700/80 uppercase">⛰️ Elev</div>
-              <div className="font-bold text-emerald-900">{actual.elevationGain} <span className="text-[10px] font-normal">m</span></div>
-            </div>
-          )}
-          {actual.sufferScore != null && (
-            <div>
-              <div className="text-[10px] text-purple-700/80 uppercase">💪 Effort</div>
-              <div className="font-bold text-purple-900">{actual.sufferScore}</div>
-            </div>
-          )}
-          {actual.calories && (
-            <div>
-              <div className="text-[10px] text-orange-700/80 uppercase">🔥 Cal</div>
-              <div className="font-bold text-orange-900">{actual.calories} <span className="text-[10px] font-normal">kcal</span></div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {actual.name && (
-        <p className="text-xs text-orange-800 mt-2 truncate" title={actual.name}>
-          {actual.name}
-        </p>
-      )}
-      <a
-        href={actual.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-orange-700 hover:text-orange-900"
-      >
-        🔗 ดูบน Strava →
-      </a>
-
-      {/* Lap splits */}
-      {athleteId && <StravaLaps activityId={actual.id} athleteId={athleteId} />}
-
-      {actual.mapPolyline && (
-        <div className="mt-3">
-          <StravaRouteMap encodedPolyline={actual.mapPolyline} />
-        </div>
-      )}
-    </div>
-  ) : null;
+    ) : null;
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
