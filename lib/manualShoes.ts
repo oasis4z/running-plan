@@ -20,8 +20,8 @@ export interface ManualShoe {
 
 const MANUAL_SHOES: Record<string, ManualShoe[]> = {
   me: [
-    { id: "g_eleos",   name: "361 Eleos SE",       baseKm: 254.7, baseDate: "2026-05-07", gearId: "", primary: true },
-    { id: "g_xtep",    name: "XTEP 260X 2.0",      baseKm: 78.0,  baseDate: "2026-05-07", gearId: "", primary: false },
+    { id: "g30916375", name: "361 Eleos SE",       baseKm: 254.7, baseDate: "2026-05-07", gearId: "g30916375", primary: true },
+    { id: "g30916414", name: "XTEP 260X 2.0",      baseKm: 78.0,  baseDate: "2026-05-07", gearId: "g30916414", primary: false },
     { id: "g_nb",      name: "NB SC TRAINER V3",   baseKm: 88.7,  baseDate: "2026-05-07", gearId: "", primary: false },
     { id: "g_saucony", name: "Saucony Guide17",     baseKm: 85.1,  baseDate: "2026-05-07", gearId: "", primary: false },
     { id: "g_qd",      name: "QIAODAN TG 1.0",     baseKm: 28.2,  baseDate: "2026-05-07", gearId: "", primary: false },
