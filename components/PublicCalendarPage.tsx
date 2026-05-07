@@ -96,12 +96,12 @@ export default function PublicCalendarPage({ athlete }: PublicCalendarPageProps)
           {/* Weather + PM2.5 (shared) */}
           <WeatherWidget />
 
-          {/* Stats row: Monthly | Weekly | Shoes */}
+          {/* Monthly compact */}
+          <MonthlyLoadChart actuals={actuals} year={year} month={month} />
+
+          {/* Weekly + Shoes */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div>
-              <MonthlyLoadChart actuals={actuals} year={year} month={month} />
-            </div>
-            <div>
+            <div className="lg:col-span-2">
               <WeeklyKmTrend athleteId={athlete.id} />
             </div>
             <div>
