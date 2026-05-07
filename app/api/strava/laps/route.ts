@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
   const cacheKey = `strava:laps:${athleteId}:${activityId}`;
   const cached = await rawGet(cacheKey);
   if (cached) {
-    return NextResponse.json({ laps: JSON.parse(cached), cached: true });
+    return NextResponse.json({ laps: JSON.parse(cached as string), cached: true });
   }
 
   const tokens = await getValidTokens(athleteId);
