@@ -42,8 +42,8 @@ export default function MonthlyLoadChart({ actuals, year, month }: MonthlyLoadCh
 
   // SVG dimensions
   const W = 700;
-  const H = 200;
-  const padL = 48, padR = 16, padT = 22, padB = 28;
+  const H = 140;
+  const padL = 40, padR = 12, padT = 16, padB = 22;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
