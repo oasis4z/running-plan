@@ -142,7 +142,10 @@ export async function fetchMonthActivities(
 
   const isRun = (a: RawStravaActivity) => {
     const t = a.sport_type ?? a.type;
-    return t === "Run" || t === "TrailRun" || t === "VirtualRun" || t === "TreadmillRun";
+    return (
+      t === "Run" || t === "TrailRun" || t === "VirtualRun" || t === "TreadmillRun" ||
+      t === "Ride" || t === "VirtualRide" || t === "EBikeRide" || t === "MountainBikeRide"
+    );
   };
 
   return raw.filter(isRun).map((a) => {
