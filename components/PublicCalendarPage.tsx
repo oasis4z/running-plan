@@ -124,6 +124,7 @@ export default function PublicCalendarPage({ athlete }: PublicCalendarPageProps)
                   date={selectedDate}
                   plan={selectedPlan}
                   actual={actuals[selectedDate]}
+                  athleteId={athlete.id}
                   loading={loading}
                   onClose={closeDetail}
                 />
@@ -138,6 +139,7 @@ export default function PublicCalendarPage({ athlete }: PublicCalendarPageProps)
                 date={selectedDate}
                 plan={selectedPlan}
                 actual={actuals[selectedDate]}
+                athleteId={athlete.id}
                 loading={loading}
                 onClose={closeDetail}
               />

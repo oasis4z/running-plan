@@ -152,6 +152,10 @@ export async function rawSet(key: string, value: string): Promise<void> {
   await upstash(["SET", key, value]);
 }
 
+export async function rawSetEx(key: string, value: string, ttlSeconds: number): Promise<void> {
+  await upstash(["SET", key, value, "EX", ttlSeconds]);
+}
+
 export async function rawDel(...keys: string[]): Promise<void> {
   if (keys.length) await upstash(["DEL", ...keys]);
 }

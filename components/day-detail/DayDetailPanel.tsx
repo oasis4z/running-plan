@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import type { TrainingPlan, StravaActivity } from "@/lib/types";
 import { RUN_TYPE_BG, RUN_TYPE_TEXT, RUN_TYPE_LIGHT_BG } from "@/lib/constants";
 import { formatPace, formatDurationHHMM } from "@/lib/strava";
+import StravaLaps from "./StravaLaps";
 
 const StravaRouteMap = dynamic(() => import("./StravaRouteMap"), {
   ssr: false,
@@ -14,6 +15,7 @@ interface DayDetailPanelProps {
   date: string;
   plan: TrainingPlan | null | undefined;
   actual?: StravaActivity;
+  athleteId?: string;
   isAdmin?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
@@ -31,6 +33,7 @@ export default function DayDetailPanel({
   date,
   plan,
   actual,
+  athleteId,
   isAdmin,
   onEdit,
   onDelete,
@@ -58,8 +61,8 @@ export default function DayDetailPanel({
         </div>
       </div>
 
-      {/* HR + Elevation row */}
-      {(actual.avgHr || actual.maxHr || actual.elevationGain != null || actual.sufferScore != null) && (
+      {/* HR + Elevation + Calories row */}
+      {(actual.avgHr || actual.maxHr || actual.elevationGain != null || actual.sufferScore != null || actual.calories) && (
         <div className="mt-2 grid grid-cols-3 gap-2 text-sm border-t border-orange-200/50 pt-2">
           {actual.avgHr && (
             <div>
@@ -85,6 +88,12 @@ export default function DayDetailPanel({
               <div className="font-bold text-purple-900">{actual.sufferScore}</div>
             </div>
           )}
+          {actual.calories && (
+            <div>
+              <div className="text-[10px] text-orange-700/80 uppercase">🔥 Cal</div>
+              <div className="font-bold text-orange-900">{actual.calories} <span className="text-[10px] font-normal">kcal</span></div>
+            </div>
+          )}
         </div>
       )}
 
@@ -101,6 +110,10 @@ export default function DayDetailPanel({
       >
         🔗 ดูบน Strava →
       </a>
+
+      {/* Lap splits */}
+      {athleteId && <StravaLaps activityId={actual.id} athleteId={athleteId} />}
+
       {actual.mapPolyline && (
         <div className="mt-3">
           <StravaRouteMap encodedPolyline={actual.mapPolyline} />

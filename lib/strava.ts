@@ -20,6 +20,7 @@ interface RawStravaActivity {
   total_elevation_gain?: number; // meters
   suffer_score?: number;         // relative effort
   map?: { summary_polyline?: string };
+  kilojoules?: number;   // energy expenditure (list endpoint)
 }
 
 export function getClientCreds() {
@@ -147,6 +148,7 @@ export async function fetchMonthActivities(
       elevationGain: a.total_elevation_gain ? Math.round(a.total_elevation_gain) : undefined,
       sufferScore: a.suffer_score ? Math.round(a.suffer_score) : undefined,
       mapPolyline: a.map?.summary_polyline || undefined,
+      calories: a.kilojoules ? Math.round(a.kilojoules / 4.184) : undefined,
     };
   });
 }

@@ -8,8 +8,8 @@ interface Props {
   children: React.ReactNode;
 }
 
-const POPOVER_W = 340;
-const POPOVER_MAX_H = 600;
+const POPOVER_W = 480;
+const POPOVER_MAX_H = 680;
 const GAP = 10;
 
 export default function DayDetailPopover({ anchorRect, onClose, children }: Props) {

@@ -231,6 +231,7 @@ export default function AdminCalendarPage({ athlete }: AdminCalendarPageProps) {
                     date={selectedDate}
                     plan={selectedPlan}
                     actual={actuals[selectedDate]}
+                    athleteId={athlete.id}
                     isAdmin
                     loading={loading || deleting}
                     onEdit={handleEdit}
@@ -259,6 +260,7 @@ export default function AdminCalendarPage({ athlete }: AdminCalendarPageProps) {
                   date={selectedDate}
                   plan={selectedPlan}
                   actual={actuals[selectedDate]}
+                  athleteId={athlete.id}
                   isAdmin
                   loading={loading || deleting}
                   onEdit={handleEdit}

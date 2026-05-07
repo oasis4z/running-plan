@@ -56,4 +56,13 @@ export interface StravaActivity {
   elevationGain?: number;  // meters
   sufferScore?: number;    // Strava relative effort
   mapPolyline?: string;   // Google Encoded Polyline from Strava map.summary_polyline
+  calories?: number;      // kcal (derived from kilojoules)
+}
+
+export interface StravaLap {
+  lapIndex: number;
+  distanceKm: number;
+  movingTimeSec: number;
+  paceSecPerKm: number;
+  avgHr?: number;
 }
