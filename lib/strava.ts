@@ -21,6 +21,7 @@ interface RawStravaActivity {
   suffer_score?: number;         // relative effort
   map?: { summary_polyline?: string };
   kilojoules?: number;   // energy expenditure (list endpoint)
+  gear_id?: string | null;
 }
 
 /**
@@ -167,6 +168,7 @@ export async function fetchMonthActivities(
       sufferScore: a.suffer_score ? Math.round(a.suffer_score) : undefined,
       mapPolyline: a.map?.summary_polyline || undefined,
       calories: a.kilojoules ? Math.round(a.kilojoules / 4.184) : undefined,
+      gearId: a.gear_id ?? undefined,
     };
   });
 }

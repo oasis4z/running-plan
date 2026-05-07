@@ -57,6 +57,7 @@ export interface StravaActivity {
   sufferScore?: number;    // Strava relative effort
   mapPolyline?: string;   // Google Encoded Polyline from Strava map.summary_polyline
   calories?: number;      // kcal (derived from kilojoules)
+  gearId?: string;        // Strava gear ID (shoe/bike)
 }
 
 export interface StravaLap {
