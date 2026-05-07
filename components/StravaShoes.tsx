@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 
-const MAX_KM = 700;
+const MAX_KM = 800;
 
 interface StravaShoe {
   id: string;

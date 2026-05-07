@@ -16,6 +16,7 @@ export interface ManualShoe {
   baseDate: string;   // "YYYY-MM-DD" — sum activities AFTER this date
   gearId: string;     // Strava gear_id, e.g. "g12345678"  (empty = no dynamic update)
   primary: boolean;
+  maxKm?: number;     // recommended lifespan (default 1000)
 }
 
 const MANUAL_SHOES: Record<string, ManualShoe[]> = {
@@ -25,6 +26,8 @@ const MANUAL_SHOES: Record<string, ManualShoe[]> = {
     { id: "g_nb",      name: "NB SC TRAINER V3",   baseKm: 88.7,  baseDate: "2026-05-07", gearId: "", primary: false },
     { id: "g_saucony", name: "Saucony Guide17",     baseKm: 85.1,  baseDate: "2026-05-07", gearId: "", primary: false },
     { id: "g_qd",      name: "QIAODAN TG 1.0",     baseKm: 28.2,  baseDate: "2026-05-07", gearId: "", primary: false },
+    { id: "g_superblast", name: "Asics Superblast2",   baseKm: 371.0, baseDate: "2026-05-07", gearId: "", primary: false },
+    { id: "g_apex",       name: "APEX Swift 2.0 Pro",  baseKm: 12.3,  baseDate: "2026-05-07", gearId: "", primary: false },
   ],
 };
 

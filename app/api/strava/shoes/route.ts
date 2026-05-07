@@ -11,6 +11,7 @@ export interface StravaShoe {
   name: string;
   distanceKm: number;
   primary: boolean;
+  maxKm?: number;
 }
 
 /** Fetch all months from startDate to today, return all activities (deduped) */
@@ -77,6 +78,7 @@ export async function GET(req: NextRequest) {
           name: s.name,
           distanceKm: Math.round((s.baseKm + (s.gearId ? (kmByGear[s.gearId] ?? 0) : 0)) * 10) / 10,
           primary: s.primary,
+          maxKm: s.maxKm,
         }))
         .sort((a, b) => b.distanceKm - a.distanceKm);
 
@@ -91,7 +93,7 @@ export async function GET(req: NextRequest) {
   // ── 2. Static manual fallback (tokens unavailable or fetch failed) ────────
   if (manual) {
     const shoes: StravaShoe[] = manual
-      .map((s) => ({ id: s.id, name: s.name, distanceKm: s.baseKm, primary: s.primary }))
+      .map((s) => ({ id: s.id, name: s.name, distanceKm: s.baseKm, primary: s.primary, maxKm: s.maxKm }))
       .sort((a, b) => b.distanceKm - a.distanceKm);
     return NextResponse.json({ shoes, cached: false, source: "manual_static" });
   }
