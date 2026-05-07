@@ -125,17 +125,19 @@ export default function CalendarDay({
         </div>
       )}
 
-      {/* Actual run badge from Strava — single line to keep cells compact */}
+      {/* Actual run badge from Strava — single line, w-full so it never overflows */}
       {actual && (
         <div
-          className="mt-auto self-start inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-white text-[9px] sm:text-[10px] font-semibold leading-tight shadow-sm max-w-full truncate"
+          className="mt-auto w-full flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-white text-[9px] sm:text-[10px] font-semibold leading-tight shadow-sm overflow-hidden"
           style={{ background: "linear-gradient(135deg, #fc4c02 0%, #f43f5e 100%)" }}
           title={`${actual.name} · ${actual.distanceKm} km · ${formatDurMin(actual.durationMin)}${actual.avgHr ? ` · ❤️ ${actual.avgHr}` : ""}`}
         >
-          <span>✓</span>
-          <span className="font-bold">{actual.distanceKm}km</span>
-          <span className="opacity-90">· {formatDurMin(actual.durationMin)}</span>
-          {actual.avgHr && <span className="opacity-90 hidden sm:inline">· {actual.avgHr}♥</span>}
+          <span className="flex-shrink-0">✓</span>
+          <span className="font-bold flex-shrink-0 ml-0.5">{actual.distanceKm}km</span>
+          <span className="opacity-90 truncate min-w-0">
+            {` · ${formatDurMin(actual.durationMin)}`}
+            {actual.avgHr ? ` · ${actual.avgHr}♥` : ""}
+          </span>
         </div>
       )}
     </button>
