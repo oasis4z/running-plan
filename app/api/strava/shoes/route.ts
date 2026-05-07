@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
   // shoes and instead: use hardcoded base km + sum activities by gear_id.
   if (manual && tokens) {
     // Cache key v3: invalidates stale v2 cache that had wrong Strava data
-    const cacheKey = `strava:shoes:v3:${athleteId}`;
+    const cacheKey = `strava:shoes:v4:${athleteId}`;
     const cached = await rawGet(cacheKey);
     if (cached) return NextResponse.json({ shoes: JSON.parse(cached as string), cached: true, source: "manual+dynamic" });
 
