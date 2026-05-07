@@ -25,8 +25,19 @@ function getMondayOf(dateStr: string): string {
 }
 
 function formatWeekLabel(mondayStr: string): string {
-  const d = new Date(mondayStr + "T00:00:00");
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const mon = new Date(mondayStr + "T00:00:00");
+  const sun = new Date(mondayStr + "T00:00:00");
+  sun.setDate(sun.getDate() + 6);
+  const monDay = mon.getDate();
+  const sunDay = sun.getDate();
+  // Same month: "4-10 May"
+  if (mon.getMonth() === sun.getMonth()) {
+    const month = sun.toLocaleDateString("en-US", { month: "short" });
+    return `${monDay}-${sunDay} ${month}`;
+  }
+  // Cross-month: "29-4 May" (show end month)
+  const sunMonth = sun.toLocaleDateString("en-US", { month: "short" });
+  return `${monDay}-${sunDay} ${sunMonth}`;
 }
 
 export function useWeeklyTrend(athleteId: string) {

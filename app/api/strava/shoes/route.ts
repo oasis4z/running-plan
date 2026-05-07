@@ -24,13 +24,13 @@ export async function GET(req: NextRequest) {
   if (cached) return NextResponse.json({ shoes: JSON.parse(cached as string), cached: true });
 
   const tokens = await getValidTokens(athleteId);
-  if (!tokens) return NextResponse.json({ shoes: [], connected: false });
+  if (!tokens) return NextResponse.json({ shoes: [], connected: false, debug: "no_tokens" });
 
   const res = await fetch("https://www.strava.com/api/v3/athlete", {
     headers: { Authorization: `Bearer ${tokens.accessToken}` },
     cache: "no-store",
   });
-  if (!res.ok) return NextResponse.json({ error: `Strava: ${res.status}` }, { status: res.status });
+  if (!res.ok) return NextResponse.json({ error: `Strava: ${res.status}`, debug: "api_error" }, { status: res.status });
 
   const data = await res.json();
   const raw: Array<{ id: string; primary: boolean; name: string; nickname?: string; distance: number; retired?: boolean }> =

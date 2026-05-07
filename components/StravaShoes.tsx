@@ -14,12 +14,14 @@ export default function StravaShoes({ athleteId }: { athleteId: string }) {
   const [shoes, setShoes] = useState<StravaShoe[]>([]);
   const [loading, setLoading] = useState(true);
   const [connected, setConnected] = useState(true);
+  const [debug, setDebug] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/strava/shoes?athlete=${encodeURIComponent(athleteId)}`)
       .then((r) => r.json())
       .then((d) => {
+        if (d.debug) setDebug(d.debug);
         if (d.connected === false) { setConnected(false); return; }
         if (d.error) { setError(d.error); return; }
         setShoes(d.shoes ?? []);
@@ -27,8 +29,6 @@ export default function StravaShoes({ athleteId }: { athleteId: string }) {
       .catch(() => setError("Failed to load"))
       .finally(() => setLoading(false));
   }, [athleteId]);
-
-  if (!loading && !connected) return null;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
@@ -40,6 +40,11 @@ export default function StravaShoes({ athleteId }: { athleteId: string }) {
       {loading ? (
         <div className="space-y-3">
           {[1, 2].map((i) => <div key={i} className="h-10 animate-pulse bg-gray-100 rounded-lg" />)}
+        </div>
+      ) : !connected ? (
+        <div className="text-center py-3">
+          <p className="text-xs text-gray-400 mb-2">Connect Strava to track shoe mileage</p>
+          {debug && <p className="text-[9px] text-gray-300">debug: {debug}</p>}
         </div>
       ) : error ? (
         <p className="text-xs text-red-400">{error}</p>
@@ -54,7 +59,6 @@ export default function StravaShoes({ athleteId }: { athleteId: string }) {
           >
             + Add shoes on Strava →
           </a>
-          <p className="text-[10px] text-gray-300 mt-2">Strava will track mileage per shoe automatically</p>
         </div>
       ) : (
         <div className="space-y-3">
