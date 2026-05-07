@@ -36,6 +36,13 @@ export async function GET(req: NextRequest) {
   const raw: Array<{ id: string; primary: boolean; name: string; nickname?: string; distance: number; retired?: boolean }> =
     data.shoes ?? [];
 
+  // Debug: return raw shoes count and keys present in response
+  const debugInfo = {
+    shoesCount: raw.length,
+    responseKeys: Object.keys(data),
+    athleteId: data.id,
+  };
+
   const shoes: StravaShoe[] = raw
     .filter((g) => !g.retired)
     .map((g) => ({
@@ -50,5 +57,5 @@ export async function GET(req: NextRequest) {
   if (shoes.length > 0) {
     await rawSetEx(cacheKey, JSON.stringify(shoes), 3600);
   }
-  return NextResponse.json({ shoes, cached: false });
+  return NextResponse.json({ shoes, cached: false, debug: debugInfo });
 }
