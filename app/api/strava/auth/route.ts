@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const athlete = await getAthleteById(athleteId);
     if (!athlete) return NextResponse.json({ error: "Athlete not found" }, { status: 404 });
 
-    const { clientId } = getClientCreds();
+    const { clientId } = getClientCreds(athleteId);
     const origin = req.nextUrl.origin;
     const redirectUri = `${origin}/api/strava/callback`;
 

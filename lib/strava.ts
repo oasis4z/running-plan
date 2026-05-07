@@ -23,7 +23,22 @@ interface RawStravaActivity {
   kilojoules?: number;   // energy expenditure (list endpoint)
 }
 
-export function getClientCreds() {
+/**
+ * Returns Strava app credentials for the given athlete.
+ * Checks athlete-specific env vars first (STRAVA_CLIENT_ID_{ATHLETE_ID_UPPER}),
+ * then falls back to the default STRAVA_CLIENT_ID / STRAVA_CLIENT_SECRET.
+ *
+ * Example: athlete id "ploy" → try STRAVA_CLIENT_ID_PLOY first.
+ */
+export function getClientCreds(athleteId?: string) {
+  if (athleteId) {
+    const suffix = athleteId.toUpperCase().replace(/[^A-Z0-9]/g, "_");
+    const specificId = process.env[`STRAVA_CLIENT_ID_${suffix}`];
+    const specificSecret = process.env[`STRAVA_CLIENT_SECRET_${suffix}`];
+    if (specificId && specificSecret) {
+      return { clientId: specificId, clientSecret: specificSecret };
+    }
+  }
   const clientId = process.env.STRAVA_CLIENT_ID;
   const clientSecret = process.env.STRAVA_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
@@ -32,8 +47,8 @@ export function getClientCreds() {
   return { clientId, clientSecret };
 }
 
-export async function exchangeCodeForTokens(code: string): Promise<StravaTokens> {
-  const { clientId, clientSecret } = getClientCreds();
+export async function exchangeCodeForTokens(code: string, athleteId?: string): Promise<StravaTokens> {
+  const { clientId, clientSecret } = getClientCreds(athleteId);
   const res = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -65,7 +80,7 @@ export async function refreshTokensIfNeeded(athleteId: string, tokens: StravaTok
   // Refresh if expires within 60s
   if (tokens.expiresAt > now + 60) return tokens;
 
-  const { clientId, clientSecret } = getClientCreds();
+  const { clientId, clientSecret } = getClientCreds(athleteId);
   const res = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

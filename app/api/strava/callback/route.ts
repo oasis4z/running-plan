@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     if (!athlete) {
       return NextResponse.redirect(`${origin}/admin?strava=error&reason=unknown_athlete`);
     }
-    const tokens = await exchangeCodeForTokens(code);
+    const tokens = await exchangeCodeForTokens(code, athleteId);
     await setStravaTokens(athleteId, tokens);
     await deleteStravaCache(athleteId);
     return NextResponse.redirect(`${origin}/admin/${athlete.slug}?strava=connected`);
