@@ -18,7 +18,11 @@ export default function WeeklyKmTrend({ athleteId }: { athleteId: string }) {
     const d = new Date(today);
     const day = d.getDay();
     d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
-    return d.toISOString().slice(0, 10);
+    // Use local date (NOT toISOString which is UTC — causes mismatch with hook's weekStart)
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${dd}`;
   })();
 
   const maxKm = Math.max(...weeks.map((w) => w.actualKm), 1);
