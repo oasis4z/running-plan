@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getValidTokens } from "@/lib/strava";
 import { rawGet, rawSetEx } from "@/lib/redis";
 import { getAthleteById } from "@/lib/athletes";
+import { getManualShoes } from "@/lib/manualShoes";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,11 @@ export async function GET(req: NextRequest) {
   if (cached) return NextResponse.json({ shoes: JSON.parse(cached as string), cached: true });
 
   const tokens = await getValidTokens(athleteId);
-  if (!tokens) return NextResponse.json({ shoes: [], connected: false, debug: "no_tokens" });
+  if (!tokens) {
+    const manual = getManualShoes(athleteId);
+    if (manual) return NextResponse.json({ shoes: manual, cached: false, source: "manual" });
+    return NextResponse.json({ shoes: [], connected: false, debug: "no_tokens" });
+  }
 
   const res = await fetch("https://www.strava.com/api/v3/athlete", {
     headers: { Authorization: `Bearer ${tokens.accessToken}` },
@@ -56,6 +61,12 @@ export async function GET(req: NextRequest) {
   // Only cache if we actually got shoes — don't cache empty (user may add shoes later)
   if (shoes.length > 0) {
     await rawSetEx(cacheKey, JSON.stringify(shoes), 3600);
+    return NextResponse.json({ shoes, cached: false, source: "strava", debug: debugInfo });
   }
-  return NextResponse.json({ shoes, cached: false, debug: debugInfo });
+
+  // Strava returned no shoes (likely missing profile:read_all scope) — use manual fallback
+  const manual = getManualShoes(athleteId);
+  if (manual) return NextResponse.json({ shoes: manual, cached: false, source: "manual" });
+
+  return NextResponse.json({ shoes: [], cached: false, source: "strava_empty", debug: debugInfo });
 }
