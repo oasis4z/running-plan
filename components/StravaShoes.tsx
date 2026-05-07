@@ -14,19 +14,21 @@ export default function StravaShoes({ athleteId }: { athleteId: string }) {
   const [shoes, setShoes] = useState<StravaShoe[]>([]);
   const [loading, setLoading] = useState(true);
   const [connected, setConnected] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/strava/shoes?athlete=${encodeURIComponent(athleteId)}`)
       .then((r) => r.json())
       .then((d) => {
-        if (d.connected === false) setConnected(false);
+        if (d.connected === false) { setConnected(false); return; }
+        if (d.error) { setError(d.error); return; }
         setShoes(d.shoes ?? []);
       })
-      .catch(() => {})
+      .catch(() => setError("Failed to load"))
       .finally(() => setLoading(false));
   }, [athleteId]);
 
-  if (!connected || (!loading && shoes.length === 0)) return null;
+  if (!loading && !connected) return null;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
@@ -37,7 +39,22 @@ export default function StravaShoes({ athleteId }: { athleteId: string }) {
 
       {loading ? (
         <div className="space-y-3">
-          {[1, 2].map((i) => <div key={i} className="h-8 animate-pulse bg-gray-100 rounded-lg" />)}
+          {[1, 2].map((i) => <div key={i} className="h-10 animate-pulse bg-gray-100 rounded-lg" />)}
+        </div>
+      ) : error ? (
+        <p className="text-xs text-red-400">{error}</p>
+      ) : shoes.length === 0 ? (
+        <div className="text-center py-3">
+          <p className="text-xs text-gray-400 mb-2">No shoes added in Strava yet</p>
+          <a
+            href="https://www.strava.com/settings/gear"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs text-orange-600 hover:text-orange-700 font-medium border border-orange-200 rounded-lg px-3 py-1.5"
+          >
+            + Add shoes on Strava →
+          </a>
+          <p className="text-[10px] text-gray-300 mt-2">Strava will track mileage per shoe automatically</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -45,6 +62,7 @@ export default function StravaShoes({ athleteId }: { athleteId: string }) {
             const pct = Math.min((shoe.distanceKm / MAX_KM) * 100, 100);
             const barColor = pct > 80 ? "#ef4444" : pct > 60 ? "#f97316" : "#3b82f6";
             const textColor = pct > 80 ? "text-red-600" : pct > 60 ? "text-orange-600" : "text-gray-700";
+            const kmLeft = MAX_KM - shoe.distanceKm;
             return (
               <div key={shoe.id}>
                 <div className="flex items-center justify-between mb-1.5">
@@ -68,7 +86,9 @@ export default function StravaShoes({ athleteId }: { athleteId: string }) {
                 </div>
                 <div className="flex justify-between mt-0.5">
                   <span className="text-[9px] text-gray-400">{Math.round(pct)}% of {MAX_KM}km</span>
-                  <span className="text-[9px] text-gray-400">{MAX_KM - shoe.distanceKm > 0 ? `${MAX_KM - shoe.distanceKm} km left` : "⚠️ Replace soon"}</span>
+                  <span className="text-[9px] text-gray-400">
+                    {kmLeft > 0 ? `${kmLeft} km left` : "⚠️ Replace soon"}
+                  </span>
                 </div>
               </div>
             );

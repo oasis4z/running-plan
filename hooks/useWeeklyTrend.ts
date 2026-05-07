@@ -23,7 +23,7 @@ function formatWeekLabel(mondayStr: string): string {
 
 export function useWeeklyTrend(athleteId: string) {
   const [weeks, setWeeks] = useState<WeekData[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // start true so skeleton shows immediately
 
   useEffect(() => {
     if (!athleteId) return;
