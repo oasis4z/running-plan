@@ -24,7 +24,7 @@ interface CalendarDayProps {
   isCurrentMonth: boolean;
   isRaceDay?: boolean;
   raceName?: string;
-  onClick: (date: string) => void;
+  onClick: (date: string, rect: DOMRect) => void;
 }
 
 function formatDurMin(min: number): string {
@@ -61,7 +61,7 @@ export default function CalendarDay({
 
   return (
     <button
-      onClick={() => onClick(date)}
+      onClick={(e) => onClick(date, e.currentTarget.getBoundingClientRect())}
       title={isRaceDay && raceName ? `🏁 Race day: ${raceName}` : undefined}
       style={cellStyle}
       className={[

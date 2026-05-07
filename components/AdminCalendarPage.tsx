@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import CalendarView from "./calendar/CalendarView";
@@ -14,6 +14,7 @@ import WeeklySummary from "./WeeklySummary";
 import MonthlyLoadChart from "./MonthlyLoadChart";
 import StravaConnect from "./StravaConnect";
 import AthleteSwitcher from "./AthleteSwitcher";
+import DayDetailPopover from "./DayDetailPopover";
 import { useCalendarMonth } from "@/hooks/useCalendarMonth";
 import { useRace } from "@/hooks/useRace";
 import { useActualRuns } from "@/hooks/useActualRuns";
@@ -32,9 +33,18 @@ export default function AdminCalendarPage({ athlete }: AdminCalendarPageProps) {
   const [month, setMonth] = useState(today.getMonth() + 1);
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
   const [mode, setMode] = useState<Mode>("view");
   const [deleting, setDeleting] = useState(false);
   const [raceKey, setRaceKey] = useState(0);
+
+  useEffect(() => {
+    const update = () => setIsDesktop(window.innerWidth >= 1024);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   const { plans, loading, refetch } = useCalendarMonth(athlete.id, year, month);
   const race = useRace(athlete.id, raceKey);
@@ -42,24 +52,33 @@ export default function AdminCalendarPage({ athlete }: AdminCalendarPageProps) {
 
   const selectedPlan: TrainingPlan | undefined = selectedDate ? plans[selectedDate] : undefined;
 
+  const closeDetail = useCallback(() => {
+    setSelectedDate(null);
+    setAnchorRect(null);
+    setMode("view");
+  }, []);
+
   const prevMonth = useCallback(() => {
     if (month === 1) { setYear(y => y - 1); setMonth(12); }
     else setMonth(m => m - 1);
-    setSelectedDate(null);
-    setMode("view");
-  }, [month]);
+    closeDetail();
+  }, [month, closeDetail]);
 
   const nextMonth = useCallback(() => {
     if (month === 12) { setYear(y => y + 1); setMonth(1); }
     else setMonth(m => m + 1);
-    setSelectedDate(null);
-    setMode("view");
-  }, [month]);
+    closeDetail();
+  }, [month, closeDetail]);
 
-  const handleSelectDate = useCallback((date: string) => {
-    setSelectedDate(date);
-    setMode("view");
-  }, []);
+  const handleSelectDate = useCallback((date: string, rect: DOMRect) => {
+    if (selectedDate === date && mode === "view") {
+      closeDetail();
+    } else {
+      setSelectedDate(date);
+      setAnchorRect(isDesktop ? rect : null);
+      setMode("view");
+    }
+  }, [selectedDate, mode, isDesktop, closeDetail]);
 
   const handleEdit = () => setMode("edit");
 
@@ -78,8 +97,7 @@ export default function AdminCalendarPage({ athlete }: AdminCalendarPageProps) {
     await fetch(`/api/plans/${selectedDate}?athlete=${encodeURIComponent(athlete.id)}`, { method: "DELETE" });
     await refetch();
     setDeleting(false);
-    setSelectedDate(null);
-    setMode("view");
+    closeDetail();
   };
 
   const handleLogout = async () => {
@@ -178,7 +196,8 @@ export default function AdminCalendarPage({ athlete }: AdminCalendarPageProps) {
               </div>
             </div>
 
-            {(selectedDate || mode === "race" || mode === "copy") && (
+            {/* Race editor / Copy Week — always side panel (triggered from header buttons) */}
+            {(mode === "race" || mode === "copy") && (
               <div className="lg:w-80 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:min-h-[400px]">
                 {mode === "copy" ? (
                   <CopyWeekDialog
@@ -186,36 +205,70 @@ export default function AdminCalendarPage({ athlete }: AdminCalendarPageProps) {
                     onClose={() => setMode("view")}
                     onCopied={handleCopiedWeek}
                   />
-                ) : mode === "race" ? (
+                ) : (
                   <RaceEditor
                     athleteId={athlete.id}
                     onClose={() => setMode("view")}
                     onSaved={handleRaceSaved}
                   />
-                ) : mode === "edit" ? (
+                )}
+              </div>
+            )}
+
+            {/* Mobile: day detail / edit form stacked below calendar */}
+            {selectedDate && !isDesktop && (mode === "view" || mode === "edit") && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                {mode === "edit" ? (
                   <AdminEditForm
                     athleteId={athlete.id}
-                    date={selectedDate!}
+                    date={selectedDate}
                     existing={selectedPlan}
                     onSave={handleSave}
                     onCancel={() => setMode("view")}
                   />
                 ) : (
                   <DayDetailPanel
-                    date={selectedDate!}
+                    date={selectedDate}
                     plan={selectedPlan}
-                    actual={actuals[selectedDate!]}
+                    actual={actuals[selectedDate]}
                     isAdmin
                     loading={loading || deleting}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     onQuickRest={!selectedPlan ? handleQuickRest : undefined}
-                    onClose={() => setSelectedDate(null)}
+                    onClose={closeDetail}
                   />
                 )}
               </div>
             )}
           </div>
+
+          {/* Desktop: floating popover for day detail / edit form */}
+          {selectedDate && isDesktop && anchorRect && (mode === "view" || mode === "edit") && (
+            <DayDetailPopover anchorRect={anchorRect} onClose={closeDetail}>
+              {mode === "edit" ? (
+                <AdminEditForm
+                  athleteId={athlete.id}
+                  date={selectedDate}
+                  existing={selectedPlan}
+                  onSave={handleSave}
+                  onCancel={() => setMode("view")}
+                />
+              ) : (
+                <DayDetailPanel
+                  date={selectedDate}
+                  plan={selectedPlan}
+                  actual={actuals[selectedDate]}
+                  isAdmin
+                  loading={loading || deleting}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onQuickRest={!selectedPlan ? handleQuickRest : undefined}
+                  onClose={closeDetail}
+                />
+              )}
+            </DayDetailPopover>
+          )}
         </div>
       </main>
     </div>

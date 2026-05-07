@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import CalendarView from "./calendar/CalendarView";
 import DayDetailPanel from "./day-detail/DayDetailPanel";
+import DayDetailPopover from "./DayDetailPopover";
 import RaceCountdown from "./RaceCountdown";
 import WeatherWidget from "./WeatherWidget";
 import WeeklySummary from "./WeeklySummary";
@@ -23,6 +24,15 @@ export default function PublicCalendarPage({ athlete }: PublicCalendarPageProps)
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const update = () => setIsDesktop(window.innerWidth >= 1024);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   const { plans, loading } = useCalendarMonth(athlete.id, year, month);
   const race = useRace(athlete.id);
@@ -30,17 +40,31 @@ export default function PublicCalendarPage({ athlete }: PublicCalendarPageProps)
 
   const selectedPlan = selectedDate ? plans[selectedDate] : undefined;
 
+  const closeDetail = useCallback(() => {
+    setSelectedDate(null);
+    setAnchorRect(null);
+  }, []);
+
+  const handleSelectDate = useCallback((date: string, rect: DOMRect) => {
+    if (selectedDate === date) {
+      closeDetail();
+    } else {
+      setSelectedDate(date);
+      setAnchorRect(isDesktop ? rect : null);
+    }
+  }, [selectedDate, isDesktop, closeDetail]);
+
   const prevMonth = useCallback(() => {
     if (month === 1) { setYear(y => y - 1); setMonth(12); }
     else setMonth(m => m - 1);
-    setSelectedDate(null);
-  }, [month]);
+    closeDetail();
+  }, [month, closeDetail]);
 
   const nextMonth = useCallback(() => {
     if (month === 12) { setYear(y => y + 1); setMonth(1); }
     else setMonth(m => m + 1);
-    setSelectedDate(null);
-  }, [month]);
+    closeDetail();
+  }, [month, closeDetail]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -86,25 +110,39 @@ export default function PublicCalendarPage({ athlete }: PublicCalendarPageProps)
                   selectedDate={selectedDate}
                   raceDate={race?.date}
                   raceName={race?.name}
-                  onSelectDate={setSelectedDate}
+                  onSelectDate={handleSelectDate}
                   onPrevMonth={prevMonth}
                   onNextMonth={nextMonth}
                 />
               </div>
             </div>
 
-            {selectedDate && (
-              <div className="lg:w-80 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:min-h-[400px]">
+            {/* Mobile: stacked panel below calendar */}
+            {selectedDate && !isDesktop && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
                 <DayDetailPanel
                   date={selectedDate}
                   plan={selectedPlan}
                   actual={actuals[selectedDate]}
                   loading={loading}
-                  onClose={() => setSelectedDate(null)}
+                  onClose={closeDetail}
                 />
               </div>
             )}
           </div>
+
+          {/* Desktop: floating popover near clicked cell */}
+          {selectedDate && isDesktop && anchorRect && (
+            <DayDetailPopover anchorRect={anchorRect} onClose={closeDetail}>
+              <DayDetailPanel
+                date={selectedDate}
+                plan={selectedPlan}
+                actual={actuals[selectedDate]}
+                loading={loading}
+                onClose={closeDetail}
+              />
+            </DayDetailPopover>
+          )}
         </div>
       </main>
     </div>

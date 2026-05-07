@@ -18,7 +18,7 @@ interface CalendarViewProps {
   selectedDate: string | null;
   raceDate?: string | null;
   raceName?: string;
-  onSelectDate: (date: string) => void;
+  onSelectDate: (date: string, rect: DOMRect) => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
 }
