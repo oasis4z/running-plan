@@ -65,7 +65,7 @@ export default function CalendarDay({
       title={isRaceDay && raceName ? `🏁 Race day: ${raceName}` : undefined}
       style={cellStyle}
       className={[
-        "relative flex flex-col items-start p-1.5 sm:p-2 min-h-[100px] sm:min-h-[120px] rounded-xl border-2 text-left transition-all w-full",
+        "relative flex flex-col items-start p-1 sm:p-2 min-h-[76px] sm:min-h-[110px] rounded-xl border-2 text-left transition-all w-full overflow-hidden",
         !plan && !isRaceDay && "bg-white hover:bg-gray-50",
         isSelected && "ring-2 ring-blue-500 ring-offset-1",
         isRaceDay && "shadow-md",
@@ -80,7 +80,7 @@ export default function CalendarDay({
       <span
         style={colors && !isToday && !isRaceDay ? { color: colors.text } : undefined}
         className={[
-          "text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full mb-1 flex-shrink-0",
+          "text-xs sm:text-sm font-bold w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full mb-0.5 flex-shrink-0",
           isToday ? "bg-blue-600 text-white" : isRaceDay ? "text-purple-900" : !plan ? "text-gray-400" : "",
         ].join(" ")}
       >
@@ -89,12 +89,12 @@ export default function CalendarDay({
 
       {/* Race day label */}
       {isRaceDay && raceName && (
-        <span className="inline-flex self-start items-center px-1.5 py-0.5 rounded text-[10px] font-bold text-white leading-tight bg-gradient-to-r from-purple-600 to-pink-600 mb-1 max-w-full truncate">
-          🏁 RACE DAY
+        <span className="inline-flex self-start items-center px-1 py-0.5 rounded text-[8px] sm:text-[10px] font-bold text-white leading-tight bg-gradient-to-r from-purple-600 to-pink-600 mb-0.5 max-w-full truncate">
+          🏁 RACE
         </span>
       )}
       {isRaceDay && raceName && (
-        <p className="text-[11px] leading-snug font-bold text-purple-900 line-clamp-2 mb-1">
+        <p className="text-[9px] sm:text-[11px] leading-snug font-bold text-purple-900 line-clamp-2 mb-0.5 break-words w-full">
           {raceName}
         </p>
       )}
@@ -104,7 +104,7 @@ export default function CalendarDay({
           {/* Badge */}
           <span
             style={{ backgroundColor: colors.badge }}
-            className="inline-flex self-start items-center px-1.5 py-0.5 rounded text-[10px] font-bold text-white leading-tight"
+            className="inline-flex self-start items-center px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold text-white leading-tight max-w-full truncate"
           >
             {RUN_TYPE_ABBR[plan.runType]}
             {plan.fartlek
@@ -118,28 +118,24 @@ export default function CalendarDay({
           {/* Workout text */}
           <p
             style={{ color: isRaceDay ? "#581c87" : colors.text }}
-            className="text-[11px] leading-snug font-medium line-clamp-2"
+            className="text-[9px] sm:text-[11px] leading-snug font-medium line-clamp-1 sm:line-clamp-2 break-words"
           >
             {summaryText}
           </p>
         </div>
       )}
 
-      {/* Actual run badge from Strava */}
+      {/* Actual run badge from Strava — single line to keep cells compact */}
       {actual && (
         <div
-          className="mt-auto self-start inline-flex flex-col gap-0.5 px-2 py-1 rounded-md text-white text-[10px] font-semibold leading-tight shadow-sm"
+          className="mt-auto self-start inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-white text-[9px] sm:text-[10px] font-semibold leading-tight shadow-sm max-w-full truncate"
           style={{ background: "linear-gradient(135deg, #fc4c02 0%, #f43f5e 100%)" }}
           title={`${actual.name} · ${actual.distanceKm} km · ${formatDurMin(actual.durationMin)}${actual.avgHr ? ` · ❤️ ${actual.avgHr}` : ""}`}
         >
-          <span className="flex items-center gap-1">
-            <span>✓</span>
-            <span className="font-bold">{actual.distanceKm} km</span>
-          </span>
-          <span className="opacity-90 font-medium">
-            {formatDurMin(actual.durationMin)}
-            {actual.avgHr ? ` · ${actual.avgHr}♥` : ""}
-          </span>
+          <span>✓</span>
+          <span className="font-bold">{actual.distanceKm}km</span>
+          <span className="opacity-90">· {formatDurMin(actual.durationMin)}</span>
+          {actual.avgHr && <span className="opacity-90 hidden sm:inline">· {actual.avgHr}♥</span>}
         </div>
       )}
     </button>
