@@ -145,7 +145,8 @@ export async function fetchMonthActivities(
     const t = a.sport_type ?? a.type;
     return (
       t === "Run" || t === "TrailRun" || t === "VirtualRun" || t === "TreadmillRun" ||
-      t === "Ride" || t === "VirtualRide" || t === "EBikeRide" || t === "MountainBikeRide"
+      t === "Ride" || t === "VirtualRide" || t === "EBikeRide" || t === "MountainBikeRide" ||
+      t === "Elliptical" || t === "StairStepper" || t === "Workout"
     );
   };
 

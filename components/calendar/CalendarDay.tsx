@@ -31,7 +31,10 @@ function getActivityIcon(type: string): string {
   if (t.includes("ride") || t === "cycling") return "🚴";
   if (t.includes("swim")) return "🏊";
   if (t.includes("walk") || t.includes("hike")) return "🚶";
-  if (t.includes("yoga") || t === "workout") return "🏋️";
+  if (t.includes("elliptical")) return "〰️";
+  if (t.includes("stair")) return "🪜";
+  if (t.includes("yoga")) return "🧘";
+  if (t.includes("workout") || t.includes("weight")) return "🏋️";
   return "🏃";
 }
 
